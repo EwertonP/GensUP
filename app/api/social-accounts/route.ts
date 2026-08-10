@@ -18,7 +18,7 @@ export async function GET() {
   }
 }
 
-// Criação real acontece via /api/auth/callback (fluxo OAuth Meta).
+// Criação real acontece via /api/auth/instagram -> /api/auth/instagram/callback (fluxo OAuth Meta).
 // Este endpoint cobre apenas contas não-OAuth cadastradas manualmente por um admin.
 export async function POST(req: NextRequest) {
   try {
