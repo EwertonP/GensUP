@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, UnauthorizedError, ForbiddenError } from "@/lib/auth/middleware";
+import { notifyContentStatusChange } from "@/lib/notifications/content-status";
 
 const VALID_STATUSES = ["draft", "in_review", "changes_requested", "approved", "scheduled", "published"] as const;
 type Status = (typeof VALID_STATUSES)[number];
@@ -54,6 +55,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    // Notificação por e-mail é best-effort e nunca deve derrubar a resposta
+    // da troca de status (ver lib/notifications/content-status.ts).
+    await notifyContentStatusChange({
+      contentItemId: data.id,
+      clientId: data.client_id ?? null,
+      status: data.status,
+    });
+
     return NextResponse.json(data);
   } catch (err) {
     if (err instanceof UnauthorizedError) return NextResponse.json({ error: err.message }, { status: 401 });
