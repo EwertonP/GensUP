@@ -4,7 +4,7 @@ import { VideoPlayer } from "@/components/video-player/VideoPlayer";
 import { CarouselViewer } from "@/components/carousel-viewer/CarouselViewer";
 import { StatusBadge } from "@/components/ui/Badge";
 import { ApproveButton } from "@/components/approvals/ApproveButton";
-import type { ContentItem } from "@/lib/types/content";
+import type { ContentItem, ContentPage } from "@/lib/types/content";
 
 export default async function ApprovalDetailPage({
   params,
@@ -26,6 +26,16 @@ export default async function ApprovalDetailPage({
   const item = data as ContentItem;
   const canApprove = item.status === "in_review";
 
+  let pages: ContentPage[] = [];
+  if (item.type === "carousel") {
+    const { data: pagesData } = await supabase
+      .from("content_pages")
+      .select("*")
+      .eq("content_item_id", item.id)
+      .order("page_number", { ascending: true });
+    pages = (pagesData as ContentPage[]) ?? [];
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
@@ -46,8 +56,8 @@ export default async function ApprovalDetailPage({
         ))}
 
       {item.type === "carousel" &&
-        (item.media_urls && item.media_urls.length > 0 ? (
-          <CarouselViewer contentItemId={item.id} images={item.media_urls} />
+        (pages.length > 0 ? (
+          <CarouselViewer contentItemId={item.id} pages={pages} />
         ) : (
           <p className="text-sm text-neutral-500">Imagens do carrossel ainda não disponíveis para este item.</p>
         ))}

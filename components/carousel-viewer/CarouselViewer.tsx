@@ -2,12 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CarouselFeedback } from "@/lib/types/content";
+import type { CarouselFeedback, ContentPage } from "@/lib/types/content";
 
 interface CarouselViewerProps {
   contentItemId: string;
-  images: string[];
-  ctaPageIndex?: number;
+  pages: ContentPage[];
 }
 
 async function fetchCarouselFeedback(contentItemId: string): Promise<CarouselFeedback[]> {
@@ -36,15 +35,16 @@ async function postCarouselFeedback(payload: PostCarouselFeedbackPayload): Promi
   return res.json();
 }
 
-export function CarouselViewer({ contentItemId, images, ctaPageIndex }: CarouselViewerProps) {
+export function CarouselViewer({ contentItemId, pages }: CarouselViewerProps) {
+  const sortedPages = [...pages].sort((a, b) => a.page_number - b.page_number);
   const [page, setPage] = useState(0);
   const [comment, setComment] = useState("");
-  const [isCta, setIsCta] = useState(false);
+  const [isCta, setIsCta] = useState(sortedPages[0]?.is_cta ?? false);
 
   const queryClient = useQueryClient();
 
-  // page_number no banco é 1-based (página 1, 2, 3...); `page` no estado local é 0-based.
-  const pageNumber = page + 1;
+  const currentPage = sortedPages[page];
+  const pageNumber = currentPage.page_number;
 
   const feedbackQuery = useQuery({
     queryKey: ["carousel-feedback", contentItemId],
@@ -62,7 +62,7 @@ export function CarouselViewer({ contentItemId, images, ctaPageIndex }: Carousel
   function goToPage(next: number) {
     setPage(next);
     setComment("");
-    setIsCta(next === ctaPageIndex);
+    setIsCta(sortedPages[next]?.is_cta ?? false);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -79,7 +79,7 @@ export function CarouselViewer({ contentItemId, images, ctaPageIndex }: Carousel
     <div className="flex flex-col gap-4 md:flex-row">
       <div className="flex flex-1 flex-col items-center gap-3">
         <img
-          src={images[page]}
+          src={currentPage.media_url}
           alt={`Página ${pageNumber}`}
           className="max-h-[480px] rounded-lg border border-neutral-200"
         />
@@ -88,13 +88,13 @@ export function CarouselViewer({ contentItemId, images, ctaPageIndex }: Carousel
             ‹ Anterior
           </button>
           <span>
-            Página {pageNumber} de {images.length}
-            {page === ctaPageIndex && " · CTA"}
+            Página {pageNumber} de {sortedPages.length}
+            {currentPage.is_cta && " · CTA"}
             {pageComments.length > 0 && ` · ${pageComments.length} comentário(s)`}
           </span>
           <button
-            onClick={() => goToPage(Math.min(images.length - 1, page + 1))}
-            disabled={page === images.length - 1}
+            onClick={() => goToPage(Math.min(sortedPages.length - 1, page + 1))}
+            disabled={page === sortedPages.length - 1}
           >
             Próxima ›
           </button>

@@ -19,16 +19,20 @@ export interface ContentItem {
   status: ContentItemStatus;
   created_by: string | null;
   created_at: string;
-  // NÃO existem ainda em supabase/migrations/001_schema.sql (só tem id/client_id/type/status/
-  // created_by/created_at). Assumidos como opcionais com fallback na UI até o Backend confirmar
-  // os nomes reais das colunas de título/mídia (provavelmente numa migration 003 futura).
-  title?: string | null;
-  caption?: string | null;
-  media_url?: string | null;
-  thumbnail_url?: string | null;
-  // Para type === "carousel": lista de URLs, uma por página. Nome/formato hipotético
-  // (pode ser jsonb, tabela separada `carousel_pages`, etc.) — CONFIRMAR com o Backend.
-  media_urls?: string[] | null;
+  // Colunas adicionadas em supabase/migrations/006_content_media.sql
+  title: string | null;
+  caption: string | null;
+  media_url: string | null;
+}
+
+// Uma linha por página de carrossel — supabase/migrations/006_content_media.sql
+export interface ContentPage {
+  id: string;
+  content_item_id: string;
+  page_number: number;
+  media_url: string;
+  is_cta: boolean;
+  created_at: string;
 }
 
 export type FeedbackStatus = "open" | "resolved";
