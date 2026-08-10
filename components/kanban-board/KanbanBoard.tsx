@@ -1,4 +1,4 @@
-const COLUMNS = ["rascunho", "em_aprovacao", "ajuste", "aprovado", "publicado"] as const;
+const COLUMNS = ["draft", "in_review", "changes_requested", "approved", "scheduled", "published"] as const;
 
 interface KanbanItem {
   id: string;
@@ -8,7 +8,7 @@ interface KanbanItem {
 
 export function KanbanBoard({ items }: { items: KanbanItem[] }) {
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-6 gap-4">
       {COLUMNS.map((col) => (
         <div key={col} className="rounded-lg bg-neutral-100 p-3">
           <h3 className="mb-2 text-xs font-semibold uppercase text-neutral-500">{col}</h3>

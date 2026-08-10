@@ -1,13 +1,14 @@
 import tokens from "@/design-tokens.json";
 
-type Status = "rascunho" | "em_aprovacao" | "ajuste" | "aprovado" | "publicado";
+type Status = "draft" | "in_review" | "changes_requested" | "approved" | "scheduled" | "published";
 
 const labels: Record<Status, string> = {
-  rascunho: "Rascunho",
-  em_aprovacao: "Em aprovação",
-  ajuste: "Ajuste solicitado",
-  aprovado: "Aprovado",
-  publicado: "Publicado",
+  draft: "Rascunho",
+  in_review: "Em aprovação",
+  changes_requested: "Ajuste solicitado",
+  approved: "Aprovado",
+  scheduled: "Agendado",
+  published: "Publicado",
 };
 
 export function StatusBadge({ status }: { status: Status }) {
