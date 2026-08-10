@@ -8,6 +8,7 @@ import type { InsightSnapshot } from "@/lib/types/insights";
 
 interface InsightsDashboardProps {
   socialAccountId: string;
+  canSync: boolean;
 }
 
 async function fetchInsights(socialAccountId: string): Promise<InsightSnapshot[]> {
@@ -31,11 +32,22 @@ async function triggerSync(socialAccountId: string): Promise<void> {
   }
 }
 
+const METRIC_LABELS: Record<string, string> = {
+  alcance: "Alcance",
+  impressoes: "Impressões",
+  engajamento: "Engajamento",
+  visualizacoes_perfil: "Visualizações de perfil",
+  seguidores: "Seguidores",
+};
+
 function formatMetricLabel(metric: string): string {
-  return metric
-    .split("_")
-    .map((word) => (word.length > 0 ? word[0].toUpperCase() + word.slice(1) : word))
-    .join(" ");
+  return (
+    METRIC_LABELS[metric] ??
+    metric
+      .split("_")
+      .map((word) => (word.length > 0 ? word[0].toUpperCase() + word.slice(1) : word))
+      .join(" ")
+  );
 }
 
 function formatValue(value: number): string {
@@ -105,7 +117,7 @@ function MetricLineChart({ metric, points }: MetricChartProps) {
   );
 }
 
-export function InsightsDashboard({ socialAccountId }: InsightsDashboardProps) {
+export function InsightsDashboard({ socialAccountId, canSync }: InsightsDashboardProps) {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const queryKey = ["insights", socialAccountId];
@@ -152,19 +164,21 @@ export function InsightsDashboard({ socialAccountId }: InsightsDashboardProps) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Métricas</h2>
-        <div className="flex flex-col items-end gap-1">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setSyncMessage(null);
-              syncMutation.mutate();
-            }}
-            disabled={syncMutation.isPending}
-          >
-            {syncMutation.isPending ? "Sincronizando..." : "Sincronizar agora"}
-          </Button>
-          {syncMessage && <p className="text-xs text-status-error">{syncMessage}</p>}
-        </div>
+        {canSync && (
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSyncMessage(null);
+                syncMutation.mutate();
+              }}
+              disabled={syncMutation.isPending}
+            >
+              {syncMutation.isPending ? "Sincronizando..." : "Sincronizar agora"}
+            </Button>
+            {syncMessage && <p className="text-xs text-status-error">{syncMessage}</p>}
+          </div>
+        )}
       </div>
 
       {insightsQuery.isLoading && <p className="text-sm text-neutral-400">Carregando métricas...</p>}

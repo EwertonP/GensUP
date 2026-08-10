@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/middleware";
 import { Card } from "@/components/ui/Card";
 import { InsightsDashboard } from "@/components/insights/InsightsDashboard";
 import type { SocialAccount, SocialPlatform } from "@/lib/types/insights";
@@ -12,6 +13,8 @@ const PLATFORM_LABEL: Record<SocialPlatform, string> = {
 };
 
 export default async function InsightsPage() {
+  const { role } = await requireAuth();
+  const canSync = role === "agencia" || role === "admin";
   const supabase = await createClient();
   // RLS filtra automaticamente pelo client_id do usuário autenticado (ver 002_rls_policies.sql).
   const { data, error } = await supabase
@@ -55,7 +58,7 @@ export default async function InsightsPage() {
                   : "Ainda não sincronizado"}
               </span>
             </div>
-            <InsightsDashboard socialAccountId={account.id} />
+            <InsightsDashboard socialAccountId={account.id} canSync={canSync} />
           </div>
         ))}
     </div>
