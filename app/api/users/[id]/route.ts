@@ -27,8 +27,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Só é possível editar o próprio usuário" }, { status: 403 });
     }
     const body = await req.json();
+    // role/client_id nunca vêm do body: trocar de tenant ou virar admin exige o admin client
+    // (defesa em profundidade — a migration 003 já bloqueia isso a nível de trigger/DB).
+    const { role: _role, client_id: _clientId, ...safeBody } = body ?? {};
     const supabase = await createClient();
-    const { data, error } = await supabase.from("users").update(body).eq("id", id).select().single();
+    const { data, error } = await supabase.from("users").update(safeBody).eq("id", id).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json(data);
   } catch (err) {
