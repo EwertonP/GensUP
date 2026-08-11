@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const ctx = await requireAuth();
     if (ctx.role !== "agencia" && ctx.role !== "admin") {
-      return NextResponse.json({ error: "Apenas agencia pode editar conteudo" }, { status: 403 });
+      return NextResponse.json({ error: "Apenas agência pode editar conteúdo" }, { status: 403 });
     }
     const { id } = await params;
     const body = await req.json();

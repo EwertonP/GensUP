@@ -52,17 +52,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (!body.slug || !body.title || !body.destination_url) {
-      return NextResponse.json({ error: "slug, title e destination_url sao obrigatorios" }, { status: 400 });
+      return NextResponse.json({ error: "slug, title e destination_url são obrigatórios" }, { status: 400 });
     }
     if (RESERVED_SLUGS.has(body.slug)) {
-      return NextResponse.json({ error: `slug "${body.slug}" e reservado` }, { status: 400 });
+      return NextResponse.json({ error: `slug "${body.slug}" é reservado` }, { status: 400 });
     }
     if (!isSafeHttpUrl(body.destination_url)) {
-      return NextResponse.json({ error: "destination_url deve ser uma URL http(s) valida" }, { status: 400 });
+      return NextResponse.json({ error: "destination_url deve ser uma URL http(s) válida" }, { status: 400 });
     }
     const clientId = body.client_id ?? ctx.clientId;
     if (!clientId) {
-      return NextResponse.json({ error: "client_id e obrigatorio" }, { status: 400 });
+      return NextResponse.json({ error: "client_id é obrigatório" }, { status: 400 });
     }
 
     const supabase = await createClient();

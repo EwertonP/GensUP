@@ -1,4 +1,4 @@
--- 011_feedback_resolve_policies.sql
+-- 012_feedback_resolve_policies.sql
 -- Achado BAIXO (docs/security/REVIEW_FASE1.md, item 3): video_feedback/carousel_feedback
 -- so tinham policies de select/insert -- ninguem conseguia marcar um feedback como
 -- resolved via RLS (nem o autor, nem agencia, nem admin via JWT de usuario), so via

@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
 
     if (typeof body.destination_url === "string" && !isSafeHttpUrl(body.destination_url)) {
-      return NextResponse.json({ error: "destination_url deve ser uma URL http(s) valida" }, { status: 400 });
+      return NextResponse.json({ error: "destination_url deve ser uma URL http(s) válida" }, { status: 400 });
     }
 
     const update: Record<string, unknown> = {};
@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (field in body) update[field] = body[field];
     }
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: "Nenhum campo editavel enviado" }, { status: 400 });
+      return NextResponse.json({ error: "Nenhum campo editável enviado" }, { status: 400 });
     }
 
     const supabase = await createClient();

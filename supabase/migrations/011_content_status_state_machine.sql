@@ -1,4 +1,4 @@
--- 010_content_status_state_machine.sql
+-- 011_content_status_state_machine.sql
 -- Achado MEDIO (docs/security/REVIEW_FASE1.md, item 2): PATCH /api/content-items/[id]
 -- aceita `status` livre no body, contornando as transicoes validadas em
 -- app/api/content-items/[id]/status/route.ts (unico endpoint "oficial" para trocar status).
