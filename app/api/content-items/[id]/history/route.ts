@@ -24,11 +24,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+    // old_status/new_status vêm do banco como `string` (a coluna não tem
+    // constraint de enum no Postgres); a aplicação só grava valores de
+    // ContentItemStatus (ver TRANSITIONS em content-items/[id]/status/route.ts),
+    // então o cast abaixo é seguro.
     const history: FeedbackHistoryEntry[] = (data ?? []).map((row) => ({
       id: row.id,
       content_item_id: row.content_item_id,
-      old_status: row.old_status,
-      new_status: row.new_status,
+      old_status: row.old_status as FeedbackHistoryEntry["old_status"],
+      new_status: row.new_status as FeedbackHistoryEntry["new_status"],
       changed_by: row.changed_by,
       changed_at: row.changed_at,
       changed_by_user: Array.isArray(row.changed_by_user)
