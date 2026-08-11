@@ -1,10 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 // Indicador de tempo parado na coluna atual do pipeline. Usa `created_at` como
 // aproximação de `stage_updated_at` (campo não existe no schema atual — ver
 // design/sales-pipeline-spec.md seção 2.4/7.2, ponto para validação humana).
 export function StaleIndicator({ updatedAt }: { updatedAt: string }) {
-  const days = Math.floor((Date.now() - new Date(updatedAt).getTime()) / 86_400_000);
+  // `Date.now()` é impuro (regra react-hooks/purity) — capturamos uma vez no
+  // estado inicial em vez de chamar diretamente durante a renderização.
+  const [now] = useState(() => Date.now());
+  const days = Math.floor((now - new Date(updatedAt).getTime()) / 86_400_000);
   if (days < 3) return null;
   const tone =
     days >= 14
