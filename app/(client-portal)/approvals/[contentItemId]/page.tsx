@@ -5,6 +5,7 @@ import { CarouselViewer } from "@/components/carousel-viewer/CarouselViewer";
 import { StatusBadge } from "@/components/ui/Badge";
 import { ApproveButton } from "@/components/approvals/ApproveButton";
 import { FeedbackHistoryTimeline } from "@/components/content/FeedbackHistoryTimeline";
+import { AgentReasoningPanel } from "@/components/agent/AgentReasoningPanel";
 import type { ContentItem, ContentPage } from "@/lib/types/content";
 
 export default async function ApprovalDetailPage({
@@ -72,6 +73,7 @@ export default async function ApprovalDetailPage({
         ))}
 
       <FeedbackHistoryTimeline contentItemId={item.id} />
+      <AgentReasoningPanel contentItemId={item.id} />
     </div>
   );
 }
