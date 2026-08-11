@@ -16,7 +16,13 @@
 // 'sugerido_para_revisao' nesta versao (MVP), nunca aplicado automaticamente.
 
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = "gemini-2.0-flash";
+// Testado manualmente contra a API real (ver histórico da Fase 5): modelos
+// "-latest"/Gemini 3 fazem "thinking" implícito que não aceita ser desligado
+// (thinkingConfig.thinkingBudget=0 retorna 400 nesses modelos) e consome o
+// orçamento de tokens, cortando a resposta antes do texto real. gemini-2.0-flash
+// e gemini-2.5-flash-lite já foram descontinuados. gemini-3.5-flash-lite responde
+// direto, sem thinking, adequado para uma tarefa simples de completude de texto.
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 
 export class LlmCredentialsError extends Error {
   constructor(message = "Credencial de LLM (GEMINI_API_KEY) não configurada") {
@@ -55,7 +61,7 @@ async function callGemini(prompt: string): Promise<string> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 300 },
+      generationConfig: { maxOutputTokens: 1024 },
     }),
   });
 
