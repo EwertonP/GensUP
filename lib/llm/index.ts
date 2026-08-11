@@ -1,12 +1,12 @@
-// Wrapper simples para a Messages API da Anthropic — usado pelo worker do agente
-// autonomo (Fase 5) para gerar sugestoes de legenda.
+// Wrapper simples para a Generative Language API do Gemini — usado pelo worker
+// do agente autonomo (Fase 5) para gerar sugestoes de legenda.
 //
 // Desvio documentado do roadmap original: o GensBot (github.com/EwertonP/GENSBot,
 // ja em producao) e uma ferramenta de automacao de mensagens/WhatsApp-Instagram
 // (flows, filas, contatos) -- NAO tem capacidade de geracao de copy. A geracao de
-// sugestao de legenda chama a API da Anthropic diretamente, nao o GensBot.
+// sugestao de legenda chama uma API de LLM diretamente, nao o GensBot.
 //
-// Segue o mesmo padrao de erro gracioso do lib/meta-api: sem ANTHROPIC_API_KEY
+// Segue o mesmo padrao de erro gracioso do lib/meta-api: sem GEMINI_API_KEY
 // configurada, lanca LlmCredentialsError -- o caller (rota Next.js) deve capturar
 // e responder 501, nunca 500 generico.
 //
@@ -15,12 +15,11 @@
 // inferencia da LLM sem revisao humana; o outcome em agent_runs e sempre
 // 'sugerido_para_revisao' nesta versao (MVP), nunca aplicado automaticamente.
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_API_VERSION = "2023-06-01";
-const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const DEFAULT_MODEL = "gemini-2.0-flash";
 
 export class LlmCredentialsError extends Error {
-  constructor(message = "Credencial de LLM (ANTHROPIC_API_KEY) não configurada") {
+  constructor(message = "Credencial de LLM (GEMINI_API_KEY) não configurada") {
     super(message);
     this.name = "LlmCredentialsError";
   }
@@ -36,42 +35,39 @@ export class LlmApiError extends Error {
 }
 
 function getApiKey(): string {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new LlmCredentialsError();
   return apiKey;
 }
 
-interface AnthropicMessageResponse {
-  content?: Array<{ type: string; text?: string }>;
+interface GeminiGenerateContentResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
   error?: { message?: string };
 }
 
-async function callAnthropic(prompt: string): Promise<string> {
+async function callGemini(prompt: string): Promise<string> {
   const apiKey = getApiKey();
 
-  const res = await fetch(ANTHROPIC_API_URL, {
+  const res = await fetch(`${GEMINI_API_BASE}/${DEFAULT_MODEL}:generateContent?key=${apiKey}`, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_API_VERSION,
-    },
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      model: DEFAULT_MODEL,
-      max_tokens: 300,
-      messages: [{ role: "user", content: prompt }],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 300 },
     }),
   });
 
-  const body = (await res.json().catch(() => ({}))) as AnthropicMessageResponse;
+  const body = (await res.json().catch(() => ({}))) as GeminiGenerateContentResponse;
 
   if (!res.ok) {
-    throw new LlmApiError(body?.error?.message ?? "Falha na chamada à API da Anthropic", res.status);
+    throw new LlmApiError(body?.error?.message ?? "Falha na chamada à API do Gemini", res.status);
   }
 
-  const text = body.content?.find((block) => block.type === "text")?.text;
+  const text = body.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text;
   if (!text) {
-    throw new LlmApiError("Resposta da API da Anthropic sem conteúdo de texto");
+    throw new LlmApiError("Resposta da API do Gemini sem conteúdo de texto");
   }
 
   return text.trim();
@@ -105,7 +101,7 @@ export async function suggestCaption(context: SuggestCaptionContext): Promise<Su
     .filter(Boolean)
     .join("\n");
 
-  const text = await callAnthropic(prompt);
+  const text = await callGemini(prompt);
 
   return { text, confidence: CAPTION_SUGGESTION_CONFIDENCE, prompt };
 }
