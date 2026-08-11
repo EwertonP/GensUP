@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth/middleware";
 import { Card } from "@/components/ui/Card";
 import { InsightsDashboard } from "@/components/insights/InsightsDashboard";
+import { UtmClicksPanel } from "@/components/insights/UtmClicksPanel";
 import type { SocialAccount, SocialPlatform } from "@/lib/types/insights";
 
 const PLATFORM_LABEL: Record<SocialPlatform, string> = {
@@ -27,6 +28,8 @@ export default async function InsightsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold">Insights</h1>
+
+      <UtmClicksPanel />
 
       {error && <p className="text-sm text-status-error">Erro ao carregar contas conectadas: {error.message}</p>}
 
