@@ -380,7 +380,7 @@ export function UtmLinkForm({ link, clientNameById, defaultClientId, onClose }: 
             <label htmlFor="is_active" className="text-sm text-neutral-700">
               Link ativo
               <p className="text-xs text-neutral-500">
-                Links inativos continuam existindo mas retornam erro 404 ao serem acessados.
+                Links inativos continuam existindo mas redirecionam para a home ao serem acessados.
               </p>
             </label>
           </div>
