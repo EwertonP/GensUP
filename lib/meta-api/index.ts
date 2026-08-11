@@ -188,4 +188,130 @@ export async function fetchAccountInsights(accessToken: string, igUserId: string
   return results;
 }
 
+// =========================================================
+// Publicação automática (Fase 3) — ver app/api/publish/route.ts.
+//
+// Publicar no Instagram via Graph API é sempre 2 passos:
+//   1) criar um "media container": POST /{ig-user-id}/media
+//      - imagem única: image_url + caption
+//      - carrossel: um container por página (children[]) + um container pai
+//        com media_type=CAROUSEL + children (lista de creation_id)
+//   2) publicar o container: POST /{ig-user-id}/media_publish com creation_id
+//
+// graphFetch já lança MetaApiError em qualquer resposta não-2xx — o caller
+// (rota de publicação) deve capturar e decidir se tenta de novo depois.
+// =========================================================
+
+async function graphPost<T>(path: string, params: Record<string, string>): Promise<T> {
+  const url = new URL(`${GRAPH_API_BASE}/${path}`);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(params).toString(),
+  });
+  const body = (await res.json().catch(() => ({}))) as T & GraphErrorBody;
+  if (!res.ok) {
+    throw new MetaApiError(body?.error?.message ?? `Falha na chamada à Graph API (POST ${path})`, res.status);
+  }
+  return body;
+}
+
+export interface PublishMediaItem {
+  mediaUrl: string;
+  isVideo?: boolean; // reels/video — usa video_url em vez de image_url no container
+}
+
+export interface PublishResult {
+  mediaId: string; // id do post publicado no Instagram (retorno de media_publish)
+}
+
+// Publica uma imagem/vídeo único. Para carrossel, use publishCarousel.
+async function publishSingleMedia(
+  accessToken: string,
+  igUserId: string,
+  item: PublishMediaItem,
+  caption: string | null
+): Promise<string> {
+  const containerParams: Record<string, string> = {
+    access_token: accessToken,
+  };
+  if (item.isVideo) {
+    containerParams.video_url = item.mediaUrl;
+    containerParams.media_type = "REELS";
+  } else {
+    containerParams.image_url = item.mediaUrl;
+  }
+  if (caption) containerParams.caption = caption;
+
+  const container = await graphPost<{ id?: string }>(`${igUserId}/media`, containerParams);
+  if (!container.id) throw new MetaApiError("Resposta sem id ao criar media container");
+  return container.id;
+}
+
+// Publica um carrossel: cria um container por item (is_carousel_item=true),
+// depois um container pai (media_type=CAROUSEL, children=<ids>).
+async function publishCarouselContainers(
+  accessToken: string,
+  igUserId: string,
+  items: PublishMediaItem[],
+  caption: string | null
+): Promise<string> {
+  const childIds: string[] = [];
+  for (const item of items) {
+    const childParams: Record<string, string> = {
+      access_token: accessToken,
+      is_carousel_item: "true",
+    };
+    if (item.isVideo) {
+      childParams.video_url = item.mediaUrl;
+      childParams.media_type = "VIDEO";
+    } else {
+      childParams.image_url = item.mediaUrl;
+    }
+    const child = await graphPost<{ id?: string }>(`${igUserId}/media`, childParams);
+    if (!child.id) throw new MetaApiError("Resposta sem id ao criar container de item do carrossel");
+    childIds.push(child.id);
+  }
+
+  const parentParams: Record<string, string> = {
+    access_token: accessToken,
+    media_type: "CAROUSEL",
+    children: childIds.join(","),
+  };
+  if (caption) parentParams.caption = caption;
+
+  const parent = await graphPost<{ id?: string }>(`${igUserId}/media`, parentParams);
+  if (!parent.id) throw new MetaApiError("Resposta sem id ao criar container pai do carrossel");
+  return parent.id;
+}
+
+// Publica media (imagem/vídeo único ou carrossel, dependendo de items.length)
+// no Instagram Business Account igUserId, usando o access_token da Page
+// (persistido em social_accounts.access_token). Retorna o id do post final.
+export async function publishToInstagram(
+  accessToken: string,
+  igUserId: string,
+  items: PublishMediaItem[],
+  caption: string | null
+): Promise<PublishResult> {
+  getCredentials();
+
+  if (items.length === 0) {
+    throw new MetaApiError("Nenhuma mídia para publicar (media_url/content_pages vazio)");
+  }
+
+  const creationId =
+    items.length === 1
+      ? await publishSingleMedia(accessToken, igUserId, items[0], caption)
+      : await publishCarouselContainers(accessToken, igUserId, items, caption);
+
+  const publish = await graphPost<{ id?: string }>(`${igUserId}/media_publish`, {
+    access_token: accessToken,
+    creation_id: creationId,
+  });
+  if (!publish.id) throw new MetaApiError("Resposta sem id ao publicar (media_publish)");
+
+  return { mediaId: publish.id };
+}
+
 export { GRAPH_API_BASE };
