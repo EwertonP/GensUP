@@ -35,6 +35,19 @@ async function postVideoFeedback(payload: PostVideoFeedbackPayload): Promise<Vid
   return res.json();
 }
 
+async function resolveVideoFeedback(id: string): Promise<VideoFeedback> {
+  const res = await fetch(`/api/feedback/video/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "resolved" }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Falha ao marcar como resolvido");
+  }
+  return res.json();
+}
+
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.floor(totalSeconds % 60)
@@ -63,6 +76,13 @@ export function VideoPlayer({ contentItemId, src, onRequestComment }: VideoPlaye
       queryClient.invalidateQueries({ queryKey: ["video-feedback", contentItemId] });
       setComment("");
       setLastConfirmedAt(created.timestamp_seconds);
+    },
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: resolveVideoFeedback,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-feedback", contentItemId] });
     },
   });
 
@@ -149,18 +169,40 @@ export function VideoPlayer({ contentItemId, src, onRequestComment }: VideoPlaye
         {feedbackQuery.isLoading && <p className="text-sm text-neutral-400">Carregando...</p>}
         {feedbackQuery.isError && <p className="text-sm text-status-error">Erro ao carregar comentários.</p>}
         <ul className="flex flex-col gap-2">
-          {comments.map((f) => (
-            <li key={f.id} className="rounded-md border border-neutral-200 p-2 text-sm">
-              <button
-                type="button"
-                onClick={() => jumpTo(f.timestamp_seconds)}
-                className="font-medium text-primary-600 hover:underline"
+          {comments.map((f) => {
+            const isResolved = f.status === "resolved";
+            return (
+              <li
+                key={f.id}
+                className={`rounded-md border border-neutral-200 p-2 text-sm ${isResolved ? "opacity-60" : ""}`}
               >
-                {formatTime(f.timestamp_seconds)}
-              </button>
-              <p className="mt-1 text-neutral-700">{f.comment}</p>
-            </li>
-          ))}
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => jumpTo(f.timestamp_seconds)}
+                    className="font-medium text-primary-600 hover:underline"
+                  >
+                    {formatTime(f.timestamp_seconds)}
+                  </button>
+                  {isResolved ? (
+                    <span className="rounded-full bg-status-approved/10 px-2 py-0.5 text-xs font-medium text-status-approved">
+                      Resolvido
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => resolveMutation.mutate(f.id)}
+                      disabled={resolveMutation.isPending}
+                      className="text-xs font-medium text-primary-600 hover:underline disabled:opacity-50"
+                    >
+                      Marcar como resolvido
+                    </button>
+                  )}
+                </div>
+                <p className={`mt-1 text-neutral-700 ${isResolved ? "line-through" : ""}`}>{f.comment}</p>
+              </li>
+            );
+          })}
           {!feedbackQuery.isLoading && comments.length === 0 && (
             <li className="text-sm text-neutral-400">Nenhum comentário ainda.</li>
           )}

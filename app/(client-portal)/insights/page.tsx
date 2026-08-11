@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/middleware";
 import { Card } from "@/components/ui/Card";
 import { InsightsDashboard } from "@/components/insights/InsightsDashboard";
 import { UtmClicksPanel } from "@/components/insights/UtmClicksPanel";
+import { MonthlyReportDownload } from "@/components/insights/MonthlyReportDownload";
 import type { SocialAccount, SocialPlatform } from "@/lib/types/insights";
 
 const PLATFORM_LABEL: Record<SocialPlatform, string> = {
@@ -14,8 +15,9 @@ const PLATFORM_LABEL: Record<SocialPlatform, string> = {
 };
 
 export default async function InsightsPage() {
-  const { role } = await requireAuth();
+  const { role, clientId } = await requireAuth();
   const canSync = role === "agencia" || role === "admin";
+  const canPickClient = role === "agencia" || role === "admin";
   const supabase = await createClient();
   // RLS filtra automaticamente pelo client_id do usuário autenticado (ver 002_rls_policies.sql).
   const { data, error } = await supabase
@@ -30,6 +32,8 @@ export default async function InsightsPage() {
       <h1 className="text-xl font-semibold">Insights</h1>
 
       <UtmClicksPanel />
+
+      <MonthlyReportDownload clientId={clientId} canPickClient={canPickClient} />
 
       {error && <p className="text-sm text-status-error">Erro ao carregar contas conectadas: {error.message}</p>}
 

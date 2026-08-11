@@ -35,6 +35,19 @@ async function postCarouselFeedback(payload: PostCarouselFeedbackPayload): Promi
   return res.json();
 }
 
+async function resolveCarouselFeedback(id: string): Promise<CarouselFeedback> {
+  const res = await fetch(`/api/feedback/carousel/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "resolved" }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Falha ao marcar como resolvido");
+  }
+  return res.json();
+}
+
 export function CarouselViewer({ contentItemId, pages }: CarouselViewerProps) {
   const sortedPages = [...pages].sort((a, b) => a.page_number - b.page_number);
   const [page, setPage] = useState(0);
@@ -56,6 +69,13 @@ export function CarouselViewer({ contentItemId, pages }: CarouselViewerProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["carousel-feedback", contentItemId] });
       setComment("");
+    },
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: resolveCarouselFeedback,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["carousel-feedback", contentItemId] });
     },
   });
 
@@ -133,12 +153,34 @@ export function CarouselViewer({ contentItemId, pages }: CarouselViewerProps) {
         {feedbackQuery.isLoading && <p className="text-sm text-neutral-400">Carregando...</p>}
         {feedbackQuery.isError && <p className="text-sm text-status-error">Erro ao carregar comentários.</p>}
         <ul className="flex flex-col gap-2">
-          {pageComments.map((f) => (
-            <li key={f.id} className="rounded-md border border-neutral-200 p-2 text-sm">
-              {f.is_cta && <span className="text-xs font-medium text-secondary-600">CTA · </span>}
-              <p className="mt-1 text-neutral-700">{f.comment}</p>
-            </li>
-          ))}
+          {pageComments.map((f) => {
+            const isResolved = f.status === "resolved";
+            return (
+              <li
+                key={f.id}
+                className={`rounded-md border border-neutral-200 p-2 text-sm ${isResolved ? "opacity-60" : ""}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span>{f.is_cta && <span className="text-xs font-medium text-secondary-600">CTA</span>}</span>
+                  {isResolved ? (
+                    <span className="rounded-full bg-status-approved/10 px-2 py-0.5 text-xs font-medium text-status-approved">
+                      Resolvido
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => resolveMutation.mutate(f.id)}
+                      disabled={resolveMutation.isPending}
+                      className="text-xs font-medium text-primary-600 hover:underline disabled:opacity-50"
+                    >
+                      Marcar como resolvido
+                    </button>
+                  )}
+                </div>
+                <p className={`mt-1 text-neutral-700 ${isResolved ? "line-through" : ""}`}>{f.comment}</p>
+              </li>
+            );
+          })}
           {!feedbackQuery.isLoading && pageComments.length === 0 && (
             <li className="text-sm text-neutral-400">Nenhum comentário nesta página ainda.</li>
           )}
