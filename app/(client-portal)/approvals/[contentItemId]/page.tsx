@@ -4,6 +4,7 @@ import { VideoPlayer } from "@/components/video-player/VideoPlayer";
 import { CarouselViewer } from "@/components/carousel-viewer/CarouselViewer";
 import { StatusBadge } from "@/components/ui/Badge";
 import { ApproveButton } from "@/components/approvals/ApproveButton";
+import { FeedbackHistoryTimeline } from "@/components/content/FeedbackHistoryTimeline";
 import type { ContentItem, ContentPage } from "@/lib/types/content";
 
 export default async function ApprovalDetailPage({
@@ -69,6 +70,8 @@ export default async function ApprovalDetailPage({
         ) : (
           <p className="text-sm text-neutral-500">Mídia ainda não disponível para este item.</p>
         ))}
+
+      <FeedbackHistoryTimeline contentItemId={item.id} />
     </div>
   );
 }
