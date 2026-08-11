@@ -57,3 +57,18 @@ export interface CarouselFeedback {
   created_by: string | null;
   created_at: string;
 }
+
+// Histórico de mudanças de status — supabase/migrations/010_audit.sql.
+// Populado automaticamente pelo trigger on_content_item_status_change (nunca
+// escrito diretamente pela aplicação).
+export interface FeedbackHistoryEntry {
+  id: string;
+  content_item_id: string;
+  old_status: ContentItemStatus | null;
+  new_status: ContentItemStatus;
+  changed_by: string | null;
+  changed_at: string;
+  // Preenchido pela rota GET /api/content-items/[id]/history via join com users
+  // (changed_by pode ser null quando a mudança veio de um job/service_role, ex: /api/publish).
+  changed_by_user: { id: string; email: string } | null;
+}
