@@ -11,7 +11,10 @@ export async function GET() {
     const supabase = await createClient();
     let query = supabase.from("agent_tasks").select("*").order("created_at", { ascending: false });
     if (ctx.role === "cliente") {
-      query = query.eq("client_id", ctx.clientId);
+      // ctx.clientId pode ser null se o usuário "cliente" estiver mal configurado
+      // (sem client_id no app_metadata). Usamos "" (nunca bate com um uuid real)
+      // para preservar o comportamento anterior de não retornar nenhuma linha.
+      query = query.eq("client_id", ctx.clientId ?? "");
     }
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
