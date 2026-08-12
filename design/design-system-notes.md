@@ -1,6 +1,11 @@
 # Notas de design system — aprendizados do Comp AI CRM (trycompai/crm)
 
-Status: análise registrada, **nenhuma mudança de código aplicada ainda** (decisão do usuário em 2026-08-11: documentar agora, implementar depois).
+Status: **decisão tomada e aplicada em 2026-08-12**.
+
+- Cor de marca: verde musgo (`design-tokens.json` → `colors.primary`, escala `#f3f6ee` → `#43602e`, base `600` = `#54733a`).
+- Regra de hierarquia aplicada em `components/ui/Button.tsx`: `primary`/`danger` preenchidos, `secondary` agora é contorno (`border-neutral-300`, fundo branco), `ghost` continua transparente.
+- Pendente (não aplicado ainda, baixa prioridade): dark mode completo, escala de raio de borda idêntica à deles, regra de governança "não sobrescrever com `className`" formalizada num `CONVENTIONS.md` dedicado.
+- Todas as páginas/componentes futuros devem seguir esses tokens — não introduzir cores novas fora de `design-tokens.json`.
 
 Fonte: `docs/design.md` do repositório [trycompai/crm](https://github.com/trycompai/crm) (mesmo repo já analisado para o padrão de fila de agente — ver `plataforma-agencia-arquitetura.md`, seção "Pesquisa: aprendizados do Comp AI CRM").
 

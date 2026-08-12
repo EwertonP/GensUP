@@ -2,9 +2,12 @@ import { ButtonHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
+// Hierarquia visual (ver design/design-system-notes.md): só primary (ação
+// desejada) e danger (ação irreversível) são preenchidos. Todo o resto é
+// chip/contorno -- nunca preenchido, pra não competir visualmente.
 const variants: Record<Variant, string> = {
   primary: "bg-primary-600 text-white hover:bg-primary-700",
-  secondary: "bg-secondary-500 text-white hover:bg-secondary-600",
+  secondary: "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50",
   danger: "bg-status-error text-white hover:opacity-90",
   ghost: "bg-transparent text-neutral-700 hover:bg-neutral-100",
 };
