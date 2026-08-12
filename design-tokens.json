@@ -22,7 +22,7 @@
     "weights": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 }
   },
   "spacing": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px", "16": "64px" },
-  "radius": { "none": "0px", "sm": "2px", "md": "4px", "lg": "8px", "xl": "16px", "full": "9999px" },
+  "radius": { "none": "0px", "sm": "4px", "md": "5px", "lg": "8px", "xl": "16px", "full": "9999px" },
   "shadows": {
     "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
     "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
