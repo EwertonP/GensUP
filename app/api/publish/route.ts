@@ -1,35 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { publishToInstagram, MetaApiError, MetaCredentialsError, type PublishMediaItem } from "@/lib/meta-api";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 
-// POST /api/publish
+// GET/POST /api/publish
 //
 // Job de publicação automática (Fase 3) — busca content_items aprovados com
 // scheduled_at vencido e ainda não publicados, publica cada um no Instagram
 // via Graph API, e marca status='published' em caso de sucesso.
 //
 // Esta rota NÃO tem sessão de usuário (é chamada por um agendador, não por um
-// browser autenticado) — protegida por um header secreto comparado a
-// process.env.CRON_SECRET. Sem esse env configurado, a rota recusa todas as
-// chamadas (fail-closed) para nunca ficar publicamente aberta por acidente.
+// browser autenticado) — protegida por isAuthorizedCronRequest (lib/cron-auth.ts).
+// Sem CRON_SECRET configurado, a rota recusa todas as chamadas (fail-closed).
 //
-// Como agendar (não configurado neste ambiente — sem credenciais Meta reais
-// para testar fim-a-fim):
-//   - Vercel Cron: adicionar em vercel.json
-//       "crons": [{ "path": "/api/publish", "schedule": "*/15 * * * *" }]
-//     e configurar o header x-cron-secret nas requests do Vercel Cron via
-//     variável de ambiente (Vercel injeta automaticamente um Authorization
-//     Bearer com CRON_SECRET em crons nativos — alternativamente, usar um
-//     Supabase Edge Function agendado via pg_cron que chama esta rota com
-//     o header abaixo).
-//   - Supabase Edge Function + pg_cron: functions/publish-scheduler que faz
-//     fetch(`${SITE_URL}/api/publish`, { headers: { "x-cron-secret": ... } })
-//     numa cron schedule (ex: a cada 15 minutos).
-export async function POST(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  const providedSecret = req.headers.get("x-cron-secret");
-
-  if (!cronSecret || providedSecret !== cronSecret) {
+// Agendada via Vercel Cron (vercel.json, "crons": [{ "path": "/api/publish", ... }]) —
+// Vercel só dispara GET e injeta automaticamente "Authorization: Bearer <CRON_SECRET>",
+// por isso o GET abaixo existe além do POST (mantido para chamadas manuais/curl com
+// x-cron-secret, ou um eventual Supabase Edge Function + pg_cron).
+async function handlePublish(req: NextRequest) {
+  if (!isAuthorizedCronRequest(req)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
@@ -119,4 +108,12 @@ export async function POST(req: NextRequest) {
     published: results.filter((r) => r.ok).length,
     results,
   });
+}
+
+export async function GET(req: NextRequest) {
+  return handlePublish(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handlePublish(req);
 }

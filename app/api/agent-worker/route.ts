@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { suggestCaption, LlmCredentialsError, LlmApiError } from "@/lib/llm";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import type { AgentRunOutcome } from "@/lib/types/agent";
 
-// POST /api/agent-worker
+// GET/POST /api/agent-worker
 //
 // Worker da fila de trabalho autônoma do agente (Fase 5) -- reivindica UMA
 // agent_task pendente via RPC claim_next_agent_task() (FOR UPDATE SKIP LOCKED,
@@ -12,9 +13,8 @@ import type { AgentRunOutcome } from "@/lib/types/agent";
 // linha em agent_runs (mesmo em falha) -- transparência do raciocínio é o
 // princípio central do produto: "nada é chutado".
 //
-// Protegida por x-cron-secret, mesmo padrão de app/api/publish/route.ts.
-// Como agendar: mesmo mecanismo documentado lá (Vercel Cron / Supabase Edge
-// Function + pg_cron chamando esta rota periodicamente).
+// Protegida por isAuthorizedCronRequest (lib/cron-auth.ts), mesmo padrão de
+// app/api/publish/route.ts. GET existe porque o Vercel Cron só dispara GET.
 //
 // Confiança sempre vira revisão humana nesta versão (outcome sempre
 // 'sugerido_para_revisao'), mesmo quando confidence é alto -- não criamos
@@ -23,11 +23,8 @@ const SUGGESTED_FOR_REVIEW: AgentRunOutcome = "sugerido_para_revisao";
 const ANOMALY_DROP_THRESHOLD = 0.3; // 30%
 const ANOMALY_LOOKBACK_DAYS = 7;
 
-export async function POST(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  const providedSecret = req.headers.get("x-cron-secret");
-
-  if (!cronSecret || providedSecret !== cronSecret) {
+async function handleAgentWorker(req: NextRequest) {
+  if (!isAuthorizedCronRequest(req)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
@@ -171,4 +168,12 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ claimed: true, task_id: task.id, status: finalStatus, run });
+}
+
+export async function GET(req: NextRequest) {
+  return handleAgentWorker(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handleAgentWorker(req);
 }
