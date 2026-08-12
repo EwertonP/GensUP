@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole, UnauthorizedError, ForbiddenError } from "@/lib/auth/middleware";
+import type { TablesUpdate } from "@/lib/supabase/types";
 
 // Campos editaveis via PATCH -- client_id/slug/created_by nunca mudam depois de criados
 // (slug e a chave da rota publica /l/[slug]; trocar quebraria links ja distribuidos).
@@ -36,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "destination_url deve ser uma URL http(s) válida" }, { status: 400 });
     }
 
-    const update: Record<string, unknown> = {};
+    const update: TablesUpdate<"utm_links"> = {};
     for (const field of EDITABLE_FIELDS) {
       if (field in body) update[field] = body[field];
     }
