@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { LogoutButton } from "@/components/auth/LogoutButton";
+import { Sidebar, type SidebarGroup } from "@/components/layout/Sidebar";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/approvals", label: "Aprovações" },
-  { href: "/insights", label: "Insights" },
+const NAV_GROUPS: SidebarGroup[] = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Aprovações", href: "/approvals" },
+  { label: "Insights", href: "/insights" },
 ];
 
 export default async function ClientPortalLayout({ children }: { children: React.ReactNode }) {
@@ -18,18 +17,9 @@ export default async function ClientPortalLayout({ children }: { children: React
   if (!user) redirect("/login");
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <nav className="mb-6 flex items-center justify-between border-b border-neutral-200 pb-4">
-        <div className="flex gap-4">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="text-sm font-medium text-neutral-700 hover:text-primary-600">
-              {item.label}
-            </Link>
-          ))}
-        </div>
-        <LogoutButton />
-      </nav>
-      {children}
+    <div className="flex min-h-screen bg-neutral-50">
+      <Sidebar groups={NAV_GROUPS} title="Portal do Cliente" />
+      <main className="flex-1 overflow-y-auto p-6">{children}</main>
     </div>
   );
 }
