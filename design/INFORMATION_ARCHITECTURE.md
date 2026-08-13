@@ -1,46 +1,144 @@
 # Arquitetura de informação — Portal da Agência
 
-Status: **estrutura aprovada em 2026-08-12**, ainda não implementada (sidebar atual do portal é um menu horizontal simples com 3 links). Este documento é a fonte da verdade de navegação — toda nova página entra numa dessas seções, não cria seção nova sem atualizar isto primeiro.
+Status: **estrutura aprovada em 2026-08-12, detalhada em 2026-08-12**. Sidebar (`components/layout/Sidebar.tsx`) implementada em 2026-08-12 nos dois layouts, com todos os grupos/subitens abaixo — rotas **[NOVA]** apontam para páginas placeholder (`ComingSoon`) até serem construídas de fato. Este documento é a fonte da verdade de navegação — toda nova página entra numa dessas seções, não cria seção nova sem atualizar isto primeiro.
 
 Navegação: sidebar esquerda (troca o menu horizontal atual dos dois portais — agência e cliente, mesmo padrão visual). Cliente mantém as seções que já tem (Dashboard, Aprovações, Insights), só muda de horizontal pra sidebar.
 
-## 1. Dashboard
-Rota: `/dashboard` (agência — hoje não existe; existe só a versão do cliente em `(client-portal)/dashboard`, que é outro dashboard, mais simples)
+Legenda usada abaixo: **[EXISTE]** já implementado e funcionando · **[NOVA]** precisa ser criada do zero · **[PARCIAL]** dado existe no banco, falta a tela.
 
-- **Visão geral** — KPIs: clientes ativos, aprovações pendentes, prospects em aberto, cliques no mês
-- **Atividade recente** — feed cronológico cross-cliente: aprovações, prospects movidos de estágio, cliques em links, execuções do agente
-- **Pendências** — o que precisa de ação humana agora: peças paradas há X dias, prospects sem contato recente, anomalias de insight detectadas pelo agente
+---
+
+## 1. Dashboard
+Rota: `/agency-dashboard` (agência) — **[NOVA]**. Renomeada de `/dashboard` em 2026-08-12: colidia com `(client-portal)/dashboard`, que já ocupa esse path no Next.js (duas rotas não podem resolver para o mesmo caminho). Não confundir com `(client-portal)/dashboard`, que é um dashboard separado e mais simples, do cliente.
+
+Acesso: `agencia`, `admin`.
+
+### 1.1 Visão geral
+KPIs em cards no topo:
+- Clientes ativos (`count(clients where status='active')`)
+- Peças aguardando aprovação (`count(content_items where status='in_review')`)
+- Prospects em aberto (`count(prospects where stage not in ('fechado','perdido'))`)
+- Cliques em links no mês (`sum(link_clicks) where clicked_at >= início do mês`)
+
+Todos os dados já existem nas tabelas atuais — é só uma query de agregação nova, sem schema novo.
+
+### 1.2 Atividade recente
+Feed cronológico cross-cliente, últimos N dias, mesclando várias fontes:
+- Mudanças de status de conteúdo (`feedback_history`)
+- Prospects mudando de estágio (precisa de uma tabela de histórico de `prospects.stage`, que **não existe ainda** — hoje só `activities` registra interações manuais, não mudança de estágio automaticamente)
+- Cliques agregados (`link_clicks`)
+- Execuções do agente (`agent_runs`)
+
+**Decisão pendente**: cada fonte tem seu próprio "quando aconteceu" — juntar num feed único exige uma view SQL ou merge no backend. Vale perguntar: você quer um feed granular (todo evento aparece) ou resumido (agrupado por tipo/dia)?
+
+### 1.3 Pendências (ação humana necessária)
+- Peças em `in_review` há mais de N dias sem mudança (definir N — sugestão: 3 dias)
+- Prospects sem `activities` registrada há mais de N dias (mesmo problema do `StaleIndicator` do Pipeline, que hoje usa `created_at` como aproximação por falta de `stage_updated_at`)
+- Anomalias já detectadas pelo agente (`agent_runs` com `outcome='sugerido_para_revisao'` e `confidence` alto) que ainda não foram vistas/tratadas por ninguém
+
+---
 
 ## 2. CRM
-- **Pipeline** — `/pipeline` (já existe) — prospects por estágio, kanban
-- **Clientes** — `/clients` (nova) — lista de clientes ativos → `/clients/[id]` (perfil: dados, contas sociais conectadas, timeline de atividades via `ActivityTimeline` já genérico, resumo de conteúdo/insights daquele cliente)
-- **Atividades** — `/activities` (nova) — log unificado de todas as interações (prospects + clientes juntos), visão "o que aconteceu essa semana" sem entrar cliente por cliente
+
+### 2.1 Pipeline — `/pipeline` **[EXISTE]**
+Já funcional: board por `stage` (novo/contatado/proposta/fechado/perdido), criação de prospect, conversão em cliente. Só precisa entrar na sidebar em vez do nav atual.
+
+### 2.2 Clientes — `/clients` **[PARCIAL: tabela `clients` existe, tela não]**
+
+**Lista** (`/clients`):
+- Colunas: nome, status (`active`/`paused`/`archived`), quantidade de contas sociais conectadas, data de criação
+- Ação: criar cliente manualmente (hoje só existe via conversão de prospect — pode ser necessário criar direto, sem passar pelo pipeline, pra clientes legados)
+- Filtro por status
+
+**Perfil individual** (`/clients/[id]`):
+- Dados do cliente (nome, status, slug do link na bio)
+- Contas sociais conectadas (`social_accounts` — hoje só Instagram, via OAuth do Fase 2)
+- Timeline de atividades (reaproveita `ActivityTimeline`, já genérico pra `client_id`)
+- Resumo de conteúdo: últimas peças, status atual do kanban filtrado por esse cliente
+- Resumo de insights: métricas recentes (se tiver conta conectada)
+- Links UTM ativos desse cliente
+- Usuários vinculados (quem tem login com esse `client_id`)
+
+**Pergunta pra você**: quando um prospect é convertido (`POST /api/prospects/[id]/convert`), hoje ele só some do board — precisamos decidir se o redirect deveria ir direto pra `/clients/[id]` do cliente recém-criado.
+
+### 2.3 Atividades — `/activities` **[NOVA]**
+Log cross-entidade: junta `activities` de todos os prospects e clientes numa lista só, com filtro por tipo (email/ligação/nota/reunião) e por cliente/prospect. Útil pra "o que a equipe fez essa semana" sem entrar em cada perfil.
+
+---
 
 ## 3. Conteúdo
-- **Kanban de produção** — `/kanban` (já existe, migra pra dentro desta seção na sidebar)
-- **Calendário editorial** — `/content/calendar` (nova) — visão por data em vez de por status
-- **Biblioteca de mídia** — `/content/library` (nova) — arquivos já enviados ao Storage, reutilizáveis entre peças
+
+### 3.1 Kanban de produção — `/kanban` **[EXISTE]**
+Migra pra dentro da seção "Conteúdo" na sidebar, sem mudança funcional.
+
+### 3.2 Calendário editorial — `/content/calendar` **[NOVA]**
+Visão por data (`scheduled_at`/`published_at` de `content_items`) em vez de por status — um calendário mensal/semanal mostrando o que está agendado pra sair quando. Útil pra ver buracos na programação (dias sem nada agendado).
+
+### 3.3 Biblioteca de mídia — `/content/library` **[NOVA]**
+Lista de arquivos já no bucket `content-media` do Storage, com preview, pra reaproveitar mídia entre peças sem re-upload. Precisa decidir: listar direto do Storage (sem tabela nova) ou criar uma tabela `media_assets` com metadados (tags, quem enviou, em quais `content_items` já foi usado)?
+
+---
 
 ## 4. Links
-- **Gerador de UTM** — `/links` (já existe, migra pra dentro desta seção)
-- **Link na Bio** — `/links/bio` (nova) — gestão de quais links aparecem na página pública `/b/[clientSlug]` de cada cliente, em que ordem (hoje só existe a página pública em si, sem tela de gestão dedicada — a criação de link já cobre isso parcialmente via `is_active`, mas falta reordenação/preview)
-- **Relatório de cliques** — `/links/clicks` (nova, ou mantém dentro de Insights — decidir na implementação) — hoje é um gráfico dentro de `/insights`
+
+### 4.1 Gerador de UTM — `/links` **[EXISTE]**
+Migra pra dentro da seção, sem mudança funcional.
+
+### 4.2 Link na Bio — `/links/bio` **[PARCIAL]**
+Hoje a página pública (`/b/[clientSlug]`) já lista os `utm_links` ativos daquele cliente, na ordem de criação. Falta uma tela de **gestão** por cliente: reordenar os links (precisa de coluna `display_order` em `utm_links`, não existe ainda), preview ao vivo da página pública, upload de foto de capa/avatar do cliente (não existe campo pra isso em `clients` hoje).
+
+### 4.3 Relatório de cliques — `/links/clicks` **[PARCIAL]**
+Dado já existe (`link_clicks`) e já tem um gráfico dentro de `/insights` (`UtmClicksPanel`). Decisão pendente: vira tela própria aqui, ou fica linkado/reaproveitado de dentro de Insights pra não duplicar?
+
+---
 
 ## 5. Agentes de IA
-- **Atividade** — `/agents` (nova) — painel consolidado de `agent_tasks`/`agent_runs` de todos os clientes (hoje só existe por `content_item` individual)
-- **Integrações** — `/agents/integrations` (nova) — status de conexão do GensBot (externo, ver `plataforma_agencia_meta_scope` na memória do projeto — GensBot cuida de automação de Direct/mensagens), link de acesso
-- **Configurações** — `/agents/settings` (nova) — quais tipos de `agent_tasks.type` estão ativos, thresholds de anomalia (hoje hardcoded em `app/api/agent-worker/route.ts`: `ANOMALY_DROP_THRESHOLD = 0.3`, `ANOMALY_LOOKBACK_DAYS = 7`)
+
+### 5.1 Atividade — `/agents` **[PARCIAL]**
+Dado já existe (`agent_tasks`/`agent_runs`), painel hoje só existe por `content_item` individual (`AgentReasoningPanel`). Tela nova precisa: listar todas as tasks de todos os clientes, filtro por tipo (`sugerir_legenda`/`checar_anomalia_insight`/`pesquisar_prospect`) e por status, com o mesmo padrão visual de confiança/outcome já usado.
+
+### 5.2 Integrações — `/agents/integrations` **[NOVA]**
+Card mostrando: GensBot conectado (sim/não — como medir isso? precisa de um health-check ou só mostrar o link fixo pro painel dele), link direto pro painel do GensBot. Não requer nova tabela — é praticamente uma página estática com um link, a menos que você queira status de saúde de verdade (aí precisaria de uma chamada de API pro GensBot, que hoje não expõe isso).
+
+### 5.3 Configurações — `/agents/settings` **[NOVA]**
+Hoje os parâmetros do agente estão hardcoded no código (`ANOMALY_DROP_THRESHOLD = 0.3`, `ANOMALY_LOOKBACK_DAYS = 7` em `app/api/agent-worker/route.ts`). Pra virar configurável pela UI, precisa de uma tabela nova (`agent_settings` ou similar, por `client_id` ou global) e o worker passa a ler de lá em vez de constante fixa.
+
+---
 
 ## 6. Relatórios
-- **Relatórios mensais** — `/reports` (nova tela de listagem/histórico — a geração de PDF já existe via `GET /api/reports/monthly`, falta a tela)
-- **Insights agregados** — `/reports/insights` (nova) — visão cross-cliente, hoje `/insights` é sempre por cliente individual
+
+### 6.1 Relatórios mensais — `/reports` **[PARCIAL]**
+Geração já existe (`GET /api/reports/monthly?client_id=&month=`), retorna PDF sob demanda. Falta: tela de listagem por cliente/mês, e decidir se os PDFs gerados ficam salvos (Storage) pra não precisar regerar toda vez, ou se continua gerando na hora sempre que pedido.
+
+### 6.2 Insights agregados — `/reports/insights` **[NOVA]**
+Visão cross-cliente das métricas (hoje `/insights` é sempre de um cliente por vez). Útil pra agência comparar performance entre clientes, ver quem está crescendo/caindo.
+
+---
 
 ## 7. Configurações
-- **Usuários da agência** — `/settings/users` (nova) — criar/editar contas (hoje só via API `/api/users`, sem tela — contas são criadas manualmente no Supabase pelo Claude Code)
-- **Meu perfil** — `/settings/profile` (nova)
+
+### 7.1 Usuários da agência — `/settings/users` **[PARCIAL]**
+API já existe (`/api/users`), sem tela. Precisa: lista de usuários (nome, email, role, cliente vinculado se for `cliente`), criar/editar/desativar conta pela UI em vez de eu mexer direto no Supabase.
+
+### 7.2 Meu perfil — `/settings/profile` **[NOVA]**
+Trocar senha, ver o próprio role/cliente vinculado. Hoje não existe absolutamente nada disso — nem trocar senha é possível pela UI.
+
+---
+
+## Perguntas em aberto (preciso da sua decisão antes de detalhar mais)
+
+1. **Feed de atividade recente** (1.2): granular ou resumido por dia?
+2. **Conversão de prospect** (2.2): redirecionar pro perfil do cliente recém-criado?
+3. **Biblioteca de mídia** (3.3): lista simples do Storage, ou tabela própria com metadados/tags?
+4. **Link na Bio** (4.2): vale a pena upload de foto de capa por cliente, ou fica só texto/links por enquanto?
+5. **Relatório de cliques** (4.3): tela própria ou fica dentro de Insights?
+6. **Status de conexão do GensBot** (5.2): health-check de verdade (exige API nova do lado do GensBot) ou só um link fixo?
+7. **Configurações do agente** (5.3): vale o esforço de tornar configurável pela UI agora, ou fica hardcoded até virar um problema real?
+8. **PDFs de relatório** (6.1): salvar no Storage (histórico permanente) ou gerar sob demanda sempre?
 
 ## Notas de implementação (pra quando formos construir)
 
 - Sidebar é um componente novo (`components/layout/Sidebar.tsx` ou similar) que substitui o `<nav>` horizontal hoje embutido direto em `app/(agency-portal)/layout.tsx` e `app/(client-portal)/layout.tsx`.
 - Seções com subseções (CRM, Conteúdo, Links, Agentes de IA, Relatórios, Configurações) precisam de um padrão de sidebar expansível (grupo com subitens) — não existe hoje nenhum componente assim no design system, é novo.
 - Muita rota nova aqui ainda não tem página nem API — construir em fases, não tudo de uma vez (ver `design/IMPLEMENTATION_PLAN.md` como referência de como fases anteriores foram fatiadas).
+- Várias subseções dependem de colunas/tabelas novas no schema (marcadas acima) — vale mapear essas migrations antes de começar o frontend, senão os subagentes de Frontend vão ter que inventar contrato de API sem schema real por baixo.

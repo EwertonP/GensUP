@@ -1,12 +1,55 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { LogoutButton } from "@/components/auth/LogoutButton";
+import { Sidebar, type SidebarGroup } from "@/components/layout/Sidebar";
 
-const NAV_ITEMS = [
-  { href: "/kanban", label: "Kanban" },
-  { href: "/pipeline", label: "Pipeline" },
-  { href: "/links", label: "Links" },
+const NAV_GROUPS: SidebarGroup[] = [
+  { label: "Dashboard", href: "/agency-dashboard" },
+  {
+    label: "CRM",
+    items: [
+      { href: "/pipeline", label: "Pipeline" },
+      { href: "/clients", label: "Clientes" },
+      { href: "/activities", label: "Atividades" },
+    ],
+  },
+  {
+    label: "Conteúdo",
+    items: [
+      { href: "/kanban", label: "Kanban" },
+      { href: "/content/calendar", label: "Calendário editorial" },
+      { href: "/content/library", label: "Biblioteca de mídia" },
+    ],
+  },
+  {
+    label: "Links",
+    items: [
+      { href: "/links", label: "Gerador de UTM" },
+      { href: "/links/bio", label: "Link na Bio" },
+      { href: "/links/clicks", label: "Relatório de cliques" },
+    ],
+  },
+  {
+    label: "Agentes de IA",
+    items: [
+      { href: "/agents", label: "Atividade" },
+      { href: "/agents/integrations", label: "Integrações" },
+      { href: "/agents/settings", label: "Configurações" },
+    ],
+  },
+  {
+    label: "Relatórios",
+    items: [
+      { href: "/reports", label: "Relatórios mensais" },
+      { href: "/reports/insights", label: "Insights agregados" },
+    ],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { href: "/settings/users", label: "Usuários da agência" },
+      { href: "/settings/profile", label: "Meu perfil" },
+    ],
+  },
 ];
 
 export default async function AgencyPortalLayout({ children }: { children: React.ReactNode }) {
@@ -21,18 +64,9 @@ export default async function AgencyPortalLayout({ children }: { children: React
   if (role !== "agencia" && role !== "admin") redirect("/dashboard");
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
-      <nav className="mb-6 flex items-center justify-between border-b border-neutral-200 pb-4">
-        <div className="flex gap-4">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="text-sm font-medium text-neutral-700 hover:text-primary-600">
-              {item.label}
-            </Link>
-          ))}
-        </div>
-        <LogoutButton />
-      </nav>
-      {children}
+    <div className="flex min-h-screen bg-neutral-50">
+      <Sidebar groups={NAV_GROUPS} title="Portal da Agência" />
+      <main className="flex-1 overflow-y-auto p-6">{children}</main>
     </div>
   );
 }

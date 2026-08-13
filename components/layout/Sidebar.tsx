@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/auth/LogoutButton";
+
+export type SidebarLink = {
+  href: string;
+  label: string;
+};
+
+export type SidebarGroup = {
+  label: string;
+  href?: string;
+  items?: SidebarLink[];
+};
+
+function isActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function groupIsActive(pathname: string, group: SidebarGroup) {
+  if (group.href) return isActive(pathname, group.href);
+  return (group.items ?? []).some((item) => isActive(pathname, item.href));
+}
+
+function SidebarGroupItem({ group, pathname }: { group: SidebarGroup; pathname: string }) {
+  const active = groupIsActive(pathname, group);
+  const [open, setOpen] = useState(active);
+
+  if (!group.items) {
+    return (
+      <Link
+        href={group.href!}
+        className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+          active ? "bg-primary-100 text-primary-700" : "text-neutral-700 hover:bg-neutral-100"
+        }`}
+      >
+        {group.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+          active ? "text-primary-700" : "text-neutral-700 hover:bg-neutral-100"
+        }`}
+      >
+        <span>{group.label}</span>
+        <span className={`text-xs transition-transform ${open ? "rotate-90" : ""}`}>&rsaquo;</span>
+      </button>
+      {open && (
+        <div className="ml-2 mt-1 flex flex-col gap-0.5 border-l border-neutral-200 pl-3">
+          {group.items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`rounded-md px-2 py-1.5 text-sm transition-colors ${
+                isActive(pathname, item.href)
+                  ? "bg-primary-100 text-primary-700 font-medium"
+                  : "text-neutral-600 hover:bg-neutral-100"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Sidebar({ groups, title }: { groups: SidebarGroup[]; title: string }) {
+  const pathname = usePathname();
+
+  return (
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white">
+      <div className="border-b border-neutral-200 px-4 py-5">
+        <span className="text-base font-semibold text-neutral-900">{title}</span>
+      </div>
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+        {groups.map((group) => (
+          <SidebarGroupItem key={group.label} group={group} pathname={pathname} />
+        ))}
+      </nav>
+      <div className="border-t border-neutral-200 px-4 py-4">
+        <LogoutButton />
+      </div>
+    </aside>
+  );
+}
