@@ -14,6 +14,7 @@ const EDITABLE_FIELDS = [
   "utm_content",
   "utm_term",
   "is_active",
+  "display_order",
 ] as const;
 
 // destination_url deve continuar http(s) apos edicao -- mesma regra do POST

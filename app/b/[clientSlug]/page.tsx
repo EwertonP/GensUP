@@ -21,7 +21,7 @@ export default async function ClientBioPage({ params }: { params: Promise<{ clie
     .select("slug, title")
     .eq("client_id", client.id)
     .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    .order("display_order", { ascending: true });
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center gap-6 px-4 py-16">

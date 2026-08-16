@@ -90,11 +90,13 @@ Grid mensal (`EditorialCalendar.tsx`) por `scheduled_at`/`published_at` de `cont
 ### 4.1 Gerador de UTM — `/links` **[EXISTE]**
 Migra pra dentro da seção, sem mudança funcional.
 
-### 4.2 Link na Bio — `/links/bio` **[PARCIAL]**
-Hoje a página pública (`/b/[clientSlug]`) já lista os `utm_links` ativos daquele cliente, na ordem de criação. Falta uma tela de **gestão** por cliente: reordenar os links (precisa de coluna `display_order` em `utm_links`, não existe ainda), preview ao vivo da página pública, upload de foto de capa/avatar do cliente (não existe campo pra isso em `clients` hoje).
+### 4.2 Link na Bio — `/links/bio` **[EXISTE]** implementado em 2026-08-13
+`BioLinksManager.tsx`: seleciona um cliente, lista os links dele ordenados por `display_order` (coluna nova, migration `020_utm_links_display_order.sql`, com backfill pela ordem de criação), reordena com botões ▲▼ que fazem swap de `display_order` via `PATCH /api/utm-links/[id]`, e mostra um link de preview pra página pública `/b/[slug]` (que agora também ordena por `display_order`). Upload de foto de capa/avatar do cliente ficou fora — `clients` ainda não tem campo pra isso; entra numa iteração futura se virar necessidade real.
 
-### 4.3 Relatório de cliques — `/links/clicks` **[PARCIAL]**
-Dado já existe (`link_clicks`) e já tem um gráfico dentro de `/insights` (`UtmClicksPanel`). Decisão pendente: vira tela própria aqui, ou fica linkado/reaproveitado de dentro de Insights pra não duplicar?
+### 4.3 Relatório de cliques — `/links/clicks` **[EXISTE]** implementado em 2026-08-13
+**Decidido em 2026-08-13**: tela própria (`LinkClicksReport.tsx`), reaproveitando o `UtmClicksPanel` já usado em `/insights` (que ganhou um prop `clientId` opcional) em vez de duplicar a lógica de agregação — só adiciona um seletor de cliente pra visão cross-cliente da agência.
+
+**Achado durante a implementação**: mesma lacuna de RLS das seções anteriores, agora em `utm_links` (select/insert/update/delete) e `link_clicks` (select) — afetava até a tela `/links` que já estava em produção pra contas `agencia` não-admin. Corrigido na migration `019_agencia_utm_links_read.sql` (aplicada ao projeto).
 
 ---
 

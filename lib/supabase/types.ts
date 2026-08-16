@@ -543,6 +543,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           destination_url: string
+          display_order: number
           id: string
           is_active: boolean
           slug: string
@@ -558,6 +559,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           destination_url: string
+          display_order?: number
           id?: string
           is_active?: boolean
           slug: string
@@ -573,6 +575,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           destination_url?: string
+          display_order?: number
           id?: string
           is_active?: boolean
           slug?: string
