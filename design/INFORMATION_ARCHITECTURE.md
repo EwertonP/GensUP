@@ -127,7 +127,7 @@ Trocar senha, ver o próprio role/cliente vinculado. Hoje não existe absolutame
 
 ## Perguntas em aberto (preciso da sua decisão antes de detalhar mais)
 
-1. **Feed de atividade recente** (1.2): granular ou resumido por dia?
+1. ~~**Feed de atividade recente** (1.2): granular ou resumido por dia?~~ **Decidido em 2026-08-13: granular**, últimos 20 eventos dos últimos 14 dias, mesclando `feedback_history` + `activities` + `agent_runs` (outcome `aplicado`/`sugerido_para_revisao`) + cliques agregados por dia. Implementado em `app/(agency-portal)/agency-dashboard/page.tsx`. Pendências (1.3) também implementadas com limiar de 3 dias (mesmo valor do `StaleIndicator` do Pipeline) e anomalias = `outcome='sugerido_para_revisao'` com `confidence >= 0.7` nos últimos 7 dias — sem flag de "visto" no schema, então a lista é só "recentes", não "não vistas ainda".
 2. **Conversão de prospect** (2.2): redirecionar pro perfil do cliente recém-criado?
 3. **Biblioteca de mídia** (3.3): lista simples do Storage, ou tabela própria com metadados/tags?
 4. **Link na Bio** (4.2): vale a pena upload de foto de capa por cliente, ou fica só texto/links por enquanto?
