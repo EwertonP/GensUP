@@ -43,8 +43,18 @@ function daysAgoISO(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
 }
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+// "há 2h" no estilo da referência (Kelp) -- timestamp relativo no card em
+// vez de data/hora completa sempre (mesmo helper de ActivitiesLog.tsx).
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diffMs / 60_000);
+  if (minutes < 1) return "agora";
+  if (minutes < 60) return `há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `há ${days}d`;
+  return new Date(iso).toLocaleDateString("pt-BR");
 }
 
 function formatDate(iso: string): string {
@@ -67,7 +77,17 @@ async function getKpis(supabase: Awaited<ReturnType<typeof createClient>>) {
   };
 }
 
-type FeedEvent = { id: string; timestamp: string; description: string };
+// Estruturado em partes (não uma string pronta) pra poder destacar a
+// palavra-chave em negrito/cor no card (design/DESIGN.md §10.3) sem parsear
+// texto livre depois.
+type FeedEvent = {
+  id: string;
+  timestamp: string;
+  title: string;
+  detailPrefix: string;
+  highlight: string;
+  detailSuffix: string;
+};
 
 async function getActivityFeed(supabase: Awaited<ReturnType<typeof createClient>>): Promise<FeedEvent[]> {
   const since = daysAgoISO(FEED_LOOKBACK_DAYS);
@@ -101,9 +121,10 @@ async function getActivityFeed(supabase: Awaited<ReturnType<typeof createClient>
     events.push({
       id: `status-${row.id}`,
       timestamp: row.changed_at,
-      description: `${contentItem?.clients?.name ?? "—"}: peça "${contentItem?.title ?? "sem título"}" mudou para ${
-        CONTENT_STATUS_LABELS[row.new_status] ?? row.new_status
-      }`,
+      title: `${contentItem?.clients?.name ?? "—"} · peça "${contentItem?.title ?? "sem título"}"`,
+      detailPrefix: "Mudou para ",
+      highlight: CONTENT_STATUS_LABELS[row.new_status] ?? row.new_status,
+      detailSuffix: "",
     });
   }
 
@@ -113,7 +134,10 @@ async function getActivityFeed(supabase: Awaited<ReturnType<typeof createClient>
     events.push({
       id: `activity-${row.id}`,
       timestamp: row.created_at,
-      description: `${ACTIVITY_TYPE_LABELS[row.type] ?? row.type} com ${prospect?.name ?? client?.name ?? "—"}`,
+      title: ACTIVITY_TYPE_LABELS[row.type] ?? row.type,
+      detailPrefix: "Com ",
+      highlight: prospect?.name ?? client?.name ?? "—",
+      detailSuffix: "",
     });
   }
 
@@ -123,9 +147,10 @@ async function getActivityFeed(supabase: Awaited<ReturnType<typeof createClient>
     events.push({
       id: `agent-${row.id}`,
       timestamp: row.created_at,
-      description: `Agente (${AGENT_TASK_TYPE_LABELS[task?.type ?? ""] ?? task?.type ?? "tarefa"}) para ${
-        task?.clients?.name ?? "—"
-      }: ${row.outcome === "aplicado" ? "aplicado automaticamente" : "sugerido para revisão"}`,
+      title: `Agente · ${AGENT_TASK_TYPE_LABELS[task?.type ?? ""] ?? task?.type ?? "tarefa"}`,
+      detailPrefix: "Para ",
+      highlight: task?.clients?.name ?? "—",
+      detailSuffix: row.outcome === "aplicado" ? " — aplicado automaticamente" : " — sugerido para revisão",
     });
   }
 
@@ -138,7 +163,10 @@ async function getActivityFeed(supabase: Awaited<ReturnType<typeof createClient>
     events.push({
       id: `clicks-${day}`,
       timestamp: `${day}T12:00:00.000Z`,
-      description: `${count} clique${count === 1 ? "" : "s"} em links`,
+      title: "Cliques em links",
+      detailPrefix: "",
+      highlight: `${count} clique${count === 1 ? "" : "s"}`,
+      detailSuffix: ` em ${new Date(`${day}T12:00:00.000Z`).toLocaleDateString("pt-BR")}`,
     });
   }
 
@@ -299,9 +327,16 @@ export default async function AgencyDashboardPage() {
 
           <ul className="mt-4 flex flex-col divide-y divide-neutral-100">
             {feed.map((event) => (
-              <li key={event.id} className="flex items-start justify-between gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
-                <span className="text-neutral-700">{event.description}</span>
-                <span className="shrink-0 text-xs text-neutral-400">{formatDateTime(event.timestamp)}</span>
+              <li key={event.id} className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm font-semibold text-neutral-900">{event.title}</span>
+                  <span className="shrink-0 text-xs text-neutral-400">{formatRelativeTime(event.timestamp)}</span>
+                </div>
+                <p className="text-sm text-neutral-600">
+                  {event.detailPrefix}
+                  <span className="font-semibold text-primary-700">{event.highlight}</span>
+                  {event.detailSuffix}
+                </p>
               </li>
             ))}
           </ul>
