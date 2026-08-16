@@ -1,10 +1,5 @@
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { InsightsOverview } from "@/components/insights/InsightsOverview";
 
 export default function ReportsInsightsPage() {
-  return (
-    <ComingSoon
-      title="Insights agregados"
-      description="Visão cross-cliente das métricas. Ver design/INFORMATION_ARCHITECTURE.md seção 6.2."
-    />
-  );
+  return <InsightsOverview />;
 }

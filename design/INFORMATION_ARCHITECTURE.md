@@ -117,11 +117,11 @@ Migra pra dentro da seção, sem mudança funcional.
 
 ## 6. Relatórios
 
-### 6.1 Relatórios mensais — `/reports` **[PARCIAL]**
-Geração já existe (`GET /api/reports/monthly?client_id=&month=`), retorna PDF sob demanda. Falta: tela de listagem por cliente/mês, e decidir se os PDFs gerados ficam salvos (Storage) pra não precisar regerar toda vez, ou se continua gerando na hora sempre que pedido.
+### 6.1 Relatórios mensais — `/reports` **[EXISTE]** implementado em 2026-08-13
+**Decidido em 2026-08-13**: continua gerando sob demanda sempre, sem salvar PDFs no Storage — sem evidência de que a regeração seja um problema real de custo/latência. Tela reaproveita `MonthlyReportDownload.tsx` (já usado em `/insights`), com seletor de cliente pra `agencia`/`admin`.
 
-### 6.2 Insights agregados — `/reports/insights` **[NOVA]**
-Visão cross-cliente das métricas (hoje `/insights` é sempre de um cliente por vez). Útil pra agência comparar performance entre clientes, ver quem está crescendo/caindo.
+### 6.2 Insights agregados — `/reports/insights` **[EXISTE]** implementado em 2026-08-13
+`InsightsOverview.tsx`: tabela comparando todos os clientes ativos lado a lado (alcance, impressões, engajamento, seguidores), últimos 30 dias, agregando `insights_snapshots` de todas as `social_accounts` por `client_id`.
 
 ---
 
