@@ -28,6 +28,27 @@ Comparado com `design-tokens.json` + `components/ui/`:
 
 ## Recomendação para quando isso for implementado
 
-- Prioridade alta, esforço baixo: mudar `Button.tsx` variant `secondary` para chip/contorno em vez de preenchido.
-- Prioridade média, esforço baixo: adicionar a regra "não sobrescrever com `className` solto — estender `components/ui/*`" nos briefings de subagentes de Frontend (ex: neste próprio arquivo, ou num `design/CONVENTIONS.md` dedicado).
-- Prioridade baixa, esforço alto: dark mode completo — só vale a pena se/quando o portal do cliente ganhar prioridade de polimento visual.
+- Prioridade alta, esforço baixo: mudar `Button.tsx` variant `secondary` para chip/contorno em vez de preenchido. **Feito** (já estava assim antes desta rodada).
+- Prioridade média, esforço baixo: adicionar a regra "não sobrescrever com `className` solto — estender `components/ui/*`" nos briefings de subagentes de Frontend (ex: neste próprio arquivo, ou num `design/CONVENTIONS.md` dedicado). Ainda pendente.
+- Prioridade baixa, esforço alto: dark mode completo — só vale a pena se/quando o portal do cliente ganhar prioridade de polimento visual. Ainda pendente.
+
+## Redesign "Apple Design" — fundamentos (2026-08-13)
+
+Usuário achou o visual "amador" e pediu pra aplicar os princípios da skill `apple-design` (motion fluido, materiais, tipografia óptica — ver *Designing Fluid Interfaces*, WWDC 2018). Escopo escolhido: **fundamentos primeiro** (tokens + primitivos compartilhados), não uma reescrita de cada página.
+
+**Achados que motivaram isso**: a fonte de marca (Inter) nunca carregava de fato (`app/layout.tsx` não tinha `next/font` nem `<link>` — tudo caía no fallback do sistema); zero lib de motion instalada; nenhum componente tinha feedback de toque (`:active`); nenhum uso de `backdrop-filter`/material; raio de borda conservador (4/5/8px); tipografia sem tracking/leading por tamanho.
+
+**O que mudou:**
+- `app/layout.tsx`: `next/font/google` carrega a Inter de verdade agora, expõe `--font-inter`.
+- `design-tokens.json`: `typography.sizes` virou tupla `[size, {lineHeight, letterSpacing}]` por tamanho (tracking negativo em texto grande, positivo em texto pequeno, leading inverso ao tamanho — skill seção 15); `radius` mais generoso (`sm` 6px → `xl` 22px); `shadows` mais suaves e com blur maior (hierarquia de elevação mais próxima de material real).
+- Instalado `motion` (sucessor do framer-motion) — `npm install motion`.
+- `components/ui/Button.tsx`: `active:scale-[0.97]` — feedback no press, não só no hover (skill seção 1, "Response").
+- `components/ui/Card.tsx`: quando `interactive`, levanta (`-translate-y-0.5`) + sombra no hover, comprime no press.
+- `components/ui/Input.tsx`: transição suave de borda/anel no foco.
+- `components/layout/Sidebar.tsx`: indicador do item ativo usa `layoutId` compartilhado (`motion/react`) — ao trocar de página, o "pill" verde **morfa** de um item pro outro em vez de sumir/reaparecer; expansão de grupo anima altura via `AnimatePresence` em vez de show/hide instantâneo; sidebar ganhou `bg-white/90 backdrop-blur-xl` (material, não branco chapado).
+
+**Fast-follow ainda não feito** (fora do escopo desta rodada, mencionar se o usuário quiser continuar):
+- Componente `Modal`/`Sheet` compartilhado — hoje cada formulário (`ClientForm`, `ProspectForm`, `UtmLinkForm`...) reimplementa `fixed inset-0 bg-black/40` do zero, sem entrada/saída animada nem origem no elemento que disparou (skill seção 7, "spatial consistency").
+- `StatusBadge`/`ClientStatusBadge`/`StageBadge` não foram tocados — visual ok, mas sem o mesmo polimento de transição.
+- `prefers-reduced-motion` ainda não tratado nos componentes com spring novos (Sidebar) — skill seção 14.
+- Rollout do redesign pras páginas em si (dashboard, kanban, pipeline, etc.) — os primitivos compartilhados já refletem automaticamente em todo lugar que os usa, mas nenhuma página individual foi redesenhada especificamente.
