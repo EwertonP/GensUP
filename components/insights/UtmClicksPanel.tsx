@@ -9,8 +9,9 @@ interface ClickPoint {
   count: number;
 }
 
-async function fetchClicks(): Promise<ClickPoint[]> {
-  const res = await fetch("/api/utm-links/clicks");
+async function fetchClicks(clientId?: string): Promise<ClickPoint[]> {
+  const url = clientId ? `/api/utm-links/clicks?client_id=${clientId}` : "/api/utm-links/clicks";
+  const res = await fetch(url);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? "Falha ao carregar cliques");
@@ -71,8 +72,8 @@ function ClicksBarChart({ points }: { points: ClickPoint[] }) {
   );
 }
 
-export function UtmClicksPanel() {
-  const clicksQuery = useQuery({ queryKey: ["utm-clicks"], queryFn: fetchClicks });
+export function UtmClicksPanel({ clientId }: { clientId?: string } = {}) {
+  const clicksQuery = useQuery({ queryKey: ["utm-clicks", clientId ?? null], queryFn: () => fetchClicks(clientId) });
 
   const points = useMemo(() => fillGaps(clicksQuery.data ?? []), [clicksQuery.data]);
   const total = useMemo(() => points.reduce((sum, p) => sum + p.count, 0), [points]);

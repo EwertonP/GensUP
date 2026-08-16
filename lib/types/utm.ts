@@ -12,6 +12,7 @@ export interface UtmLink {
   utm_content: string | null;
   utm_term: string | null;
   is_active: boolean;
+  display_order: number;
   created_by: string | null;
   created_at: string;
 }

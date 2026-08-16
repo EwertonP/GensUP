@@ -1,10 +1,5 @@
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { LinkClicksReport } from "@/components/insights/LinkClicksReport";
 
 export default function LinksClicksPage() {
-  return (
-    <ComingSoon
-      title="Relatório de cliques"
-      description="Relatório de cliques em links UTM. Ver design/INFORMATION_ARCHITECTURE.md seção 4.3."
-    />
-  );
+  return <LinkClicksReport />;
 }

@@ -1,10 +1,5 @@
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { BioLinksManager } from "@/components/utm-links/BioLinksManager";
 
 export default function LinksBioPage() {
-  return (
-    <ComingSoon
-      title="Link na Bio"
-      description="Gestão da página pública de bio por cliente. Ver design/INFORMATION_ARCHITECTURE.md seção 4.2."
-    />
-  );
+  return <BioLinksManager />;
 }
