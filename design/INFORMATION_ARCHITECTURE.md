@@ -63,8 +63,10 @@ Já funcional: board por `stage` (novo/contatado/proposta/fechado/perdido), cria
 
 **Achado importante durante a implementação**: as políticas de RLS de `clients`, `content_items`, `social_accounts`, `insights_snapshots`, `video_feedback` e `carousel_feedback` só liberavam leitura cross-cliente para `is_admin()` — um usuário `role=agencia` (não-admin) via zero linhas nessas tabelas, porque staff de agência normalmente tem `client_id=null`. Corrigido na migration `016_agencia_cross_client_read.sql` (aplicada ao projeto), seguindo o mesmo padrão já usado em `prospects`/`activities` (`013_sales_crm.sql`). Isso também destrava os KPIs da seção 1 pra contas `agencia` não-admin.
 
-### 2.3 Atividades — `/activities` **[NOVA]**
-Log cross-entidade: junta `activities` de todos os prospects e clientes numa lista só, com filtro por tipo (email/ligação/nota/reunião) e por cliente/prospect. Útil pra "o que a equipe fez essa semana" sem entrar em cada perfil.
+### 2.3 Atividades — `/activities` **[EXISTE]** implementado em 2026-08-13
+Log cross-entidade (`ActivitiesLog.tsx`): junta as últimas 200 `activities` de todos os prospects e clientes numa lista só, com filtro por tipo (email/ligação/nota/reunião) e busca por nome de cliente/prospect. Cada linha linka pro perfil do cliente (`/clients/[id]`) ou do prospect (`/pipeline/[id]`) e mostra quem registrou (`users.email`).
+
+**Achado durante a implementação**: mesma lacuna de RLS da seção 2.2, agora em `activities` — as policies de `select`/`update`/`delete` só liberavam leitura de activities com `client_id` preenchido (timeline pós-conversão) pra `is_admin()`; `agencia` não-admin não via activities de nenhum cliente. Corrigido na migration `017_agencia_activities_client_read.sql` (aplicada ao projeto), mesmo padrão de `016`.
 
 ---
 
