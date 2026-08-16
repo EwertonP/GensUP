@@ -75,11 +75,13 @@ Log cross-entidade (`ActivitiesLog.tsx`): junta as últimas 200 `activities` de 
 ### 3.1 Kanban de produção — `/kanban` **[EXISTE]**
 Migra pra dentro da seção "Conteúdo" na sidebar, sem mudança funcional.
 
-### 3.2 Calendário editorial — `/content/calendar` **[NOVA]**
-Visão por data (`scheduled_at`/`published_at` de `content_items`) em vez de por status — um calendário mensal/semanal mostrando o que está agendado pra sair quando. Útil pra ver buracos na programação (dias sem nada agendado).
+### 3.2 Calendário editorial — `/content/calendar` **[EXISTE]** implementado em 2026-08-13
+Grid mensal (`EditorialCalendar.tsx`) por `scheduled_at`/`published_at` de `content_items`, cross-cliente, com navegação anterior/próximo mês por query string (`?year=&month=`). Cada dia mostra as peças daquele dia com cliente + status; dias vazios já revelam buracos na programação visualmente, sem indicador extra.
 
-### 3.3 Biblioteca de mídia — `/content/library` **[NOVA]**
-Lista de arquivos já no bucket `content-media` do Storage, com preview, pra reaproveitar mídia entre peças sem re-upload. Precisa decidir: listar direto do Storage (sem tabela nova) ou criar uma tabela `media_assets` com metadados (tags, quem enviou, em quais `content_items` já foi usado)?
+### 3.3 Biblioteca de mídia — `/content/library` **[EXISTE]** implementado em 2026-08-13
+**Decidido em 2026-08-13**: listar direto do Storage, sem tabela nova (`media_assets` fica pra depois, só se tags/histórico de uso virarem necessidade real). `GET /api/content-media?client_id=` lista os objetos do bucket `content-media` por cliente (path `{client_id}/{content_item_id}/{filename}`, ver `005_storage.sql`) e gera signed URLs de 1h pra preview. Tela exige selecionar um cliente (`MediaLibrary.tsx`) antes de listar.
+
+**Achado durante a implementação**: mesma lacuna de RLS das seções anteriores, agora na policy de `select` de `storage.objects` do bucket `content-media` — só liberava leitura cross-cliente pra `is_admin()`. Corrigido na migration `018_agencia_storage_read.sql` (aplicada ao projeto).
 
 ---
 
