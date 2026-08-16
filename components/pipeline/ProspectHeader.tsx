@@ -7,7 +7,7 @@ export function ProspectHeader({ prospect, ownerName }: { prospect: Prospect; ow
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">{prospect.name}</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">{prospect.name}</h1>
           <p className="text-sm text-neutral-500">{prospect.company}</p>
         </div>
         <StageBadge stage={prospect.stage} />

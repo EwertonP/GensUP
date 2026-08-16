@@ -77,7 +77,7 @@ export function BioLinksManager() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold">Link na Bio</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Link na Bio</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Reordene os links que aparecem na página pública de cada cliente.
         </p>

@@ -55,7 +55,7 @@ export function ProfileSettings({ email, role, clientName }: ProfileSettingsProp
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Meu perfil</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Meu perfil</h1>
         <p className="mt-1 text-sm text-neutral-500">Dados da sua conta e troca de senha.</p>
       </div>
 

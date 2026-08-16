@@ -29,7 +29,7 @@ export default async function InsightsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Insights</h1>
+      <h1 className="text-3xl font-bold tracking-[-0.02em]">Insights</h1>
 
       <UtmClicksPanel />
 

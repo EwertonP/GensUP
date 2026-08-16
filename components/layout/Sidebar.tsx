@@ -21,6 +21,7 @@ export type SidebarGroup = {
 // trocar de página, o "pill" verde morfa de um item pro outro em vez de
 // sumir/reaparecer (skill apple-design, "spatial consistency" + morphing).
 const ACTIVE_PILL_ID = "sidebar-active-pill";
+const ACTIVE_BAR_ID = "sidebar-active-bar";
 const SPRING = { type: "spring" as const, stiffness: 500, damping: 35 };
 
 function isActive(pathname: string, href: string) {
@@ -45,11 +46,18 @@ function SidebarGroupItem({ group, pathname }: { group: SidebarGroup; pathname: 
         }`}
       >
         {active && (
-          <motion.span
-            layoutId={ACTIVE_PILL_ID}
-            transition={SPRING}
-            className="absolute inset-0 rounded-md bg-primary-100"
-          />
+          <>
+            <motion.span
+              layoutId={ACTIVE_PILL_ID}
+              transition={SPRING}
+              className="absolute inset-0 rounded-md bg-primary-100"
+            />
+            <motion.span
+              layoutId={ACTIVE_BAR_ID}
+              transition={SPRING}
+              className="absolute inset-y-1 -left-3 w-[3px] rounded-full bg-primary-600"
+            />
+          </>
         )}
         <span className="relative">{group.label}</span>
       </Link>
@@ -61,10 +69,17 @@ function SidebarGroupItem({ group, pathname }: { group: SidebarGroup; pathname: 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors active:scale-[0.98] ${
+        className={`relative flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors active:scale-[0.98] ${
           active ? "text-primary-700" : "text-neutral-700 hover:bg-neutral-100"
         }`}
       >
+        {active && !open && (
+          <motion.span
+            layoutId={ACTIVE_BAR_ID}
+            transition={SPRING}
+            className="absolute inset-y-1 -left-3 w-[3px] rounded-full bg-primary-600"
+          />
+        )}
         <span>{group.label}</span>
         <motion.span
           className="text-xs"
@@ -117,8 +132,8 @@ export function Sidebar({ groups, title }: { groups: SidebarGroup[]; title: stri
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-neutral-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="border-b border-neutral-200/80 px-4 py-5">
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white">
+      <div className="border-b border-neutral-200 px-4 py-5">
         <span className="text-base font-semibold tracking-[-0.01em] text-neutral-900">{title}</span>
       </div>
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
@@ -126,7 +141,7 @@ export function Sidebar({ groups, title }: { groups: SidebarGroup[]; title: stri
           <SidebarGroupItem key={group.label} group={group} pathname={pathname} />
         ))}
       </nav>
-      <div className="border-t border-neutral-200/80 px-4 py-4">
+      <div className="border-t border-neutral-200 px-4 py-4">
         <LogoutButton />
       </div>
     </aside>

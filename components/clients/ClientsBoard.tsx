@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { ClientStatusBadge } from "@/components/clients/ClientStatusBadge";
 import { ClientForm } from "@/components/clients/ClientForm";
 import type { Client, ClientStatus } from "@/lib/types/client";
@@ -29,12 +30,11 @@ async function fetchSocialAccountCounts(): Promise<Map<string, number>> {
   return counts;
 }
 
-const STATUS_FILTERS: { value: ClientStatus | "all"; label: string }[] = [
-  { value: "all", label: "Todos" },
-  { value: "active", label: "Ativos" },
-  { value: "paused", label: "Pausados" },
-  { value: "archived", label: "Arquivados" },
-];
+const STATUS_LABELS: Record<ClientStatus, string> = {
+  active: "Ativos",
+  paused: "Pausados",
+  archived: "Arquivados",
+};
 
 export function ClientsBoard({ canCreate }: { canCreate: boolean }) {
   const [showForm, setShowForm] = useState(false);
@@ -51,11 +51,24 @@ export function ClientsBoard({ canCreate }: { canCreate: boolean }) {
     [clients, statusFilter]
   );
 
+  const tabs: TabItem[] = useMemo(() => {
+    const counts = new Map<ClientStatus, number>();
+    for (const client of clients) counts.set(client.status, (counts.get(client.status) ?? 0) + 1);
+    return [
+      { value: "all", label: "Todos", count: clients.length },
+      ...Object.entries(STATUS_LABELS).map(([value, label]) => ({
+        value,
+        label,
+        count: counts.get(value as ClientStatus) ?? 0,
+      })),
+    ];
+  }, [clients]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Clientes</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">Clientes</h1>
           <p className="text-sm text-neutral-500">Todos os clientes ativos, pausados e arquivados da agência.</p>
         </div>
         {canCreate && (
@@ -65,22 +78,7 @@ export function ClientsBoard({ canCreate }: { canCreate: boolean }) {
         )}
       </div>
 
-      <div className="flex gap-2">
-        {STATUS_FILTERS.map((filter) => (
-          <button
-            key={filter.value}
-            type="button"
-            onClick={() => setStatusFilter(filter.value)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              statusFilter === filter.value
-                ? "bg-primary-600 text-white"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={tabs} value={statusFilter} onChange={(v) => setStatusFilter(v as ClientStatus | "all")} />
 
       {clientsQuery.isLoading && <p className="text-sm text-neutral-400">Carregando clientes...</p>}
       {clientsQuery.isError && (

@@ -9,7 +9,7 @@ export default function AgentsIntegrationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Integrações</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Integrações</h1>
         <p className="mt-1 text-sm text-neutral-500">Serviços externos conectados à plataforma.</p>
       </div>
 

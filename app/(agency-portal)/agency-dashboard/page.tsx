@@ -224,7 +224,7 @@ export default async function AgencyDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <h1 className="text-3xl font-bold tracking-[-0.02em]">Dashboard</h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
@@ -297,9 +297,9 @@ export default async function AgencyDashboardPage() {
 
           {feed.length === 0 && <p className="mt-4 text-sm text-neutral-500">Nenhuma atividade recente.</p>}
 
-          <ul className="mt-4 flex flex-col gap-3">
+          <ul className="mt-4 flex flex-col divide-y divide-neutral-100">
             {feed.map((event) => (
-              <li key={event.id} className="flex items-start justify-between gap-3 text-sm">
+              <li key={event.id} className="flex items-start justify-between gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
                 <span className="text-neutral-700">{event.description}</span>
                 <span className="shrink-0 text-xs text-neutral-400">{formatDateTime(event.timestamp)}</span>
               </li>

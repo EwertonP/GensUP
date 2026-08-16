@@ -76,7 +76,7 @@ export async function InsightsOverview() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold">Insights agregados</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Insights agregados</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Comparativo entre clientes ativos, últimos {LOOKBACK_DAYS} dias.
         </p>

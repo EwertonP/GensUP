@@ -48,3 +48,41 @@ Não entra no MVP do design system a menos que você peça — é a mudança mai
 Mesmo modelo das fases de produto: um subagente de Frontend por fase (B, C, D são independentes entre si depois que A terminar), cada um revisado antes do merge, `type-check`/`lint`/`build` como critério de pronto. A Fase A eu já apliquei direto (é pequena e fundacional, não precisava de subagente).
 
 **Não vou disparar B/C/D automaticamente** — cada uma é um caso de "vale a pena agora?" separado. Fase B é a mais valiosa (consistência visível em toda a produto); D é importante mas menos urgente num app ainda não público; E é a que eu mais adiaria.
+
+---
+
+## Fase F — Fundamentos v2 (referências visuais, 2026-08-13)
+
+Motivada pelo usuário achando o resultado da Fase A "amador" e trazendo duas referências (Kelp CRM, Untitled UI). Ver `design/DESIGN.md` v2 pro racional completo de cada mudança. Escopo: só tokens + `components/ui/*` + `Sidebar.tsx` — nenhuma página nova é tocada, mesma lógica da Fase A.
+
+- [x] `app/layout.tsx`: `next/font/google` carregando Inter de verdade (bug real — nunca carregava antes)
+- [x] `motion` instalado
+- [x] `Button.tsx`: `active:scale-[0.97]` no press
+- [x] `Card.tsx`: eleva no hover/comprime no press quando `interactive`; `shadow-sm` removido do estado de repouso (card estático agora só tem borda, sem sombra)
+- [x] `Input.tsx`: transição suave no foco
+- [x] `Sidebar.tsx`: indicador ativo com `layoutId` (morphing), grupo expande com `AnimatePresence`
+- [x] `Sidebar.tsx`: revertido `bg-white/90 backdrop-blur-xl` → `bg-white` sólido
+- [x] `Sidebar.tsx`: indicador de item ativo ganhou a barra vertical de 3px na borda esquerda (`layoutId` próprio, sem colidir com o do grupo pai quando expandido)
+- [x] `design-tokens.json` → `tailwind.config.ts`: raio v2 aplicado (`lg` 14px→18px; `md`/`sm`/`xl` já vieram certos da Fase A)
+- [x] `<h1>` de página: `text-xl font-semibold` → `text-3xl font-bold tracking-[-0.02em]` em 25 arquivos (`app/**` e `components/**`), via `sed` em lote depois de confirmar por grep que todas as ocorrências eram `<h1>`
+
+Critério de pronto: `npm run build` limpo — **feito**. Checagem visual: `<h1>` confirmado em 30px/700 via `getComputedStyle` no `/login`; sem erros de console além de HMR do túnel de preview (infra, não app).
+
+## Fase G — Novos primitivos compartilhados
+
+Componentes que as referências trazem e que não existem hoje (`DESIGN.md` §10.1-10.2):
+
+- [x] `components/ui/Tabs.tsx`: tabs com indicador de linha animado (`layoutId`, mesmo spring da Sidebar) + badge de contagem opcional por aba
+- [x] `components/ui/CountBadge.tsx`: pill cinza claro com número
+- [x] Item de lista selecionável: a barra de destaque foi pro indicador ativo da própria `Sidebar` (Fase F); `ClientsBoard`/`ActivitiesLog` adotaram `Tabs` em vez de botões de filtro soltos, que já tem indicador próprio
+
+## Fase H — Rollout pros padrões de conteúdo real
+
+- [x] `ActivitiesLog.tsx`: cards individuais (não mais linhas de uma lista dividida) — nome do alvo em negrito, timestamp relativo (`há 2h`) no canto, corpo em cinza, autor no rodapé; filtro por tipo virou `Tabs` com contagem por tipo
+- [x] `ClientsBoard.tsx`: filtro de status virou `Tabs` com contagem por status (antes eram botões `rounded-full` soltos, sem indicador animado)
+- [~] Feed de atividade recente do `agency-dashboard` (seção 1.2): espaçamento/divisores melhorados, mas **não** virou o card rico completo com palavras-chave em negrito/cor — a função `getActivityFeed` retorna `description` como string única já montada (`"${cliente}: peça X mudou para Y"`), não partes estruturadas. Pra fazer o padrão completo, `FeedEvent` precisaria virar `{ subject, verb, detail }` em vez de uma string pronta — fica documentado como próximo passo, não fingido como feito.
+- [ ] Varredura geral: qualquer `Card` estático que dependia do `shadow-sm` antigo pra se destacar do fundo — não houve nenhum caso visualmente quebrado nos `npm run build`/checks feitos, mas não foi uma varredura visual página por página (só `/login` foi checado ao vivo)
+- [ ] Páginas com abas reais (nenhuma hoje usa tabs — `ClientsBoard` usa botões de filtro por status; avaliar se vale trocar por `Tabs.tsx` da Fase G, ou se o padrão de filtro por chip já é suficiente ali)
+- [ ] Varredura geral: qualquer `Card` estático que hoje depende do `shadow-sm` antigo pra se destacar do fundo — conferir que a borda sozinha (Fase F) ainda separa visualmente bem, ajustar `border-neutral-200` → mais escura se precisar de mais contraste
+
+Não vou disparar F/G/H automaticamente — mesmo modelo das fases anteriores, uma pergunta de escopo por fase antes de começar.
