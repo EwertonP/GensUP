@@ -7,6 +7,10 @@ interface CardProps {
 }
 
 export function Card({ children, className = "", interactive = false }: CardProps) {
-  const interactiveClasses = interactive ? "shadow-sm transition-shadow hover:shadow-md" : "shadow-sm";
-  return <div className={`rounded-lg border border-neutral-200 bg-white ${interactiveClasses} ${className}`}>{children}</div>;
+  const interactiveClasses = interactive
+    ? "shadow-sm transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.99]"
+    : "shadow-sm";
+  return (
+    <div className={`rounded-lg border border-neutral-200/80 bg-white ${interactiveClasses} ${className}`}>{children}</div>
+  );
 }

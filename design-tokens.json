@@ -17,16 +17,24 @@
     }
   },
   "typography": {
-    "fontFamily": "Inter, system-ui, sans-serif",
-    "sizes": { "xs": "12px", "sm": "14px", "base": "16px", "lg": "18px", "xl": "20px", "2xl": "24px", "3xl": "30px" },
+    "fontFamily": "var(--font-inter), Inter, system-ui, sans-serif",
+    "sizes": {
+      "xs": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em" }],
+      "sm": ["14px", { "lineHeight": "21px", "letterSpacing": "0em" }],
+      "base": ["16px", { "lineHeight": "26px", "letterSpacing": "0em" }],
+      "lg": ["18px", { "lineHeight": "27px", "letterSpacing": "-0.005em" }],
+      "xl": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em" }],
+      "2xl": ["24px", { "lineHeight": "31px", "letterSpacing": "-0.015em" }],
+      "3xl": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.02em" }]
+    },
     "weights": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 }
   },
   "spacing": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px", "16": "64px" },
-  "radius": { "none": "0px", "sm": "4px", "md": "5px", "lg": "8px", "xl": "16px", "full": "9999px" },
+  "radius": { "none": "0px", "sm": "6px", "md": "10px", "lg": "14px", "xl": "22px", "full": "9999px" },
   "shadows": {
-    "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-    "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-    "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+    "sm": "0 1px 2px 0 rgb(15 23 42 / 0.04)",
+    "md": "0 8px 24px -8px rgb(15 23 42 / 0.12)",
+    "lg": "0 16px 40px -12px rgb(15 23 42 / 0.18)"
   },
   "breakpoints": { "mobile": "0px", "tablet": "640px", "desktop": "1024px" }
 }

@@ -14,7 +14,10 @@ const config: Config = {
       fontFamily: {
         sans: [tokens.typography.fontFamily],
       },
-      fontSize: tokens.typography.sizes,
+      fontSize: tokens.typography.sizes as unknown as Record<
+        string,
+        [string, { lineHeight: string; letterSpacing: string }]
+      >,
       spacing: tokens.spacing,
       borderRadius: tokens.radius,
       boxShadow: tokens.shadows,
