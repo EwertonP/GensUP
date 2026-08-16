@@ -48,3 +48,38 @@ Não entra no MVP do design system a menos que você peça — é a mudança mai
 Mesmo modelo das fases de produto: um subagente de Frontend por fase (B, C, D são independentes entre si depois que A terminar), cada um revisado antes do merge, `type-check`/`lint`/`build` como critério de pronto. A Fase A eu já apliquei direto (é pequena e fundacional, não precisava de subagente).
 
 **Não vou disparar B/C/D automaticamente** — cada uma é um caso de "vale a pena agora?" separado. Fase B é a mais valiosa (consistência visível em toda a produto); D é importante mas menos urgente num app ainda não público; E é a que eu mais adiaria.
+
+---
+
+## Fase F — Fundamentos v2 (referências visuais, 2026-08-13)
+
+Motivada pelo usuário achando o resultado da Fase A "amador" e trazendo duas referências (Kelp CRM, Untitled UI). Ver `design/DESIGN.md` v2 pro racional completo de cada mudança. Escopo: só tokens + `components/ui/*` + `Sidebar.tsx` — nenhuma página nova é tocada, mesma lógica da Fase A.
+
+- [x] `app/layout.tsx`: `next/font/google` carregando Inter de verdade (bug real — nunca carregava antes)
+- [x] `motion` instalado
+- [x] `Button.tsx`: `active:scale-[0.97]` no press
+- [x] `Card.tsx`: eleva no hover/comprime no press quando `interactive` — **pendente**: remover `shadow-sm` do estado de repouso (v2 do `DESIGN.md` §4 diz card estático não tem sombra nenhuma, só borda; a Fase A anterior manteve `shadow-sm` sempre)
+- [x] `Input.tsx`: transição suave no foco
+- [x] `Sidebar.tsx`: indicador ativo com `layoutId` (morphing), grupo expande com `AnimatePresence`
+- [ ] `Sidebar.tsx`: **reverter** `bg-white/90 backdrop-blur-xl` → `bg-white` sólido (nenhuma referência usa blur; `DESIGN.md` §9 já proibia isso antes da Fase A introduzir)
+- [ ] `Sidebar.tsx`: indicador de item ativo ganha a barra vertical de 2-3px na borda esquerda (`DESIGN.md` §10.2), além do fundo tintado que já existe
+- [ ] `design-tokens.json` → `tailwind.config.ts`: aplicar raio v2 (`lg` 8px→18px, `xl` 16px→22px, `md`/`sm` já ajustados na Fase A) e sombra v2 (`md`/`lg` mais suaves, já ajustadas; `sm` quase invisível, já ajustada) — **conferir se precisa de mais um ajuste fino** depois de ver as páginas reais com o raio novo
+- [ ] `<h1>` de página: trocar `text-xl font-semibold` → `text-3xl font-bold tracking-[-0.02em]` nas páginas que usam esse padrão (grep por `text-xl font-semibold` em `app/**/*.tsx` pra achar todas de uma vez)
+
+Critério de pronto: `npm run build` limpo, checagem visual de pelo menos duas telas (`/agency-dashboard`, `/clients`) confirmando raio/sombra/tipografia novos sem quebrar layout.
+
+## Fase G — Novos primitivos compartilhados
+
+Componentes que as referências trazem e que não existem hoje (`DESIGN.md` §10.1-10.2):
+
+- [ ] `components/ui/Tabs.tsx`: tabs com indicador de linha animado (`layoutId`, mesmo spring da Sidebar) + badge de contagem opcional por aba
+- [ ] `components/ui/CountBadge.tsx`: pill cinza claro com número — hoje cada tela que precisa disso (se precisar) reinventaria do zero; vira o padrão único
+- [ ] Refinar item de lista selecionável (usado hoje em `ClientsBoard`, `ActivitiesLog`) pra ganhar a barra de destaque na borda esquerda quando ativo
+
+## Fase H — Rollout pros padrões de conteúdo real
+
+- [ ] `ActivitiesLog.tsx` (seção 2.3 de `INFORMATION_ARCHITECTURE.md`) e o feed de atividade recente do `agency-dashboard` (seção 1.2): evoluir pro padrão de card rico (`DESIGN.md` §10.3) — título bold + timestamp no canto + corpo com palavras-chave em negrito/cor, em vez da linha de texto plano atual
+- [ ] Páginas com abas reais (nenhuma hoje usa tabs — `ClientsBoard` usa botões de filtro por status; avaliar se vale trocar por `Tabs.tsx` da Fase G, ou se o padrão de filtro por chip já é suficiente ali)
+- [ ] Varredura geral: qualquer `Card` estático que hoje depende do `shadow-sm` antigo pra se destacar do fundo — conferir que a borda sozinha (Fase F) ainda separa visualmente bem, ajustar `border-neutral-200` → mais escura se precisar de mais contraste
+
+Não vou disparar F/G/H automaticamente — mesmo modelo das fases anteriores, uma pergunta de escopo por fase antes de começar.
