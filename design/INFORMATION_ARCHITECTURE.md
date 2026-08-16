@@ -102,14 +102,16 @@ Migra pra dentro da seção, sem mudança funcional.
 
 ## 5. Agentes de IA
 
-### 5.1 Atividade — `/agents` **[PARCIAL]**
-Dado já existe (`agent_tasks`/`agent_runs`), painel hoje só existe por `content_item` individual (`AgentReasoningPanel`). Tela nova precisa: listar todas as tasks de todos os clientes, filtro por tipo (`sugerir_legenda`/`checar_anomalia_insight`/`pesquisar_prospect`) e por status, com o mesmo padrão visual de confiança/outcome já usado.
+### 5.1 Atividade — `/agents` **[EXISTE]** implementado em 2026-08-13
+`AgentActivityPanel.tsx`: lista todas as `agent_tasks`/`agent_runs` de todos os clientes, filtro por tipo (`sugerir_legenda`/`checar_anomalia_insight`/`pesquisar_prospect`) e por status, reaproveitando `AgentTaskCard` (mesmo padrão visual de confiança/outcome já usado em `AgentReasoningPanel`).
 
-### 5.2 Integrações — `/agents/integrations` **[NOVA]**
-Card mostrando: GensBot conectado (sim/não — como medir isso? precisa de um health-check ou só mostrar o link fixo pro painel dele), link direto pro painel do GensBot. Não requer nova tabela — é praticamente uma página estática com um link, a menos que você queira status de saúde de verdade (aí precisaria de uma chamada de API pro GensBot, que hoje não expõe isso).
+**Achado durante a implementação**: mesma lacuna de RLS das seções anteriores, agora em `agent_tasks`/`agent_runs` (select). Corrigido na migration `021_agencia_agent_tasks_read.sql` (aplicada ao projeto).
 
-### 5.3 Configurações — `/agents/settings` **[NOVA]**
-Hoje os parâmetros do agente estão hardcoded no código (`ANOMALY_DROP_THRESHOLD = 0.3`, `ANOMALY_LOOKBACK_DAYS = 7` em `app/api/agent-worker/route.ts`). Pra virar configurável pela UI, precisa de uma tabela nova (`agent_settings` ou similar, por `client_id` ou global) e o worker passa a ler de lá em vez de constante fixa.
+### 5.2 Integrações — `/agents/integrations` **[EXISTE]** implementado em 2026-08-13
+**Decidido em 2026-08-13**: link fixo, sem health-check real (GensBot não expõe status de saúde hoje). URL configurável via `NEXT_PUBLIC_GENSBOT_URL` (`.env.example`) — card mostra "configure a env var" se ela não estiver setada, em vez de linkar pra algo inventado.
+
+### 5.3 Configurações — `/agents/settings` **[EXISTE]** implementado em 2026-08-13 (somente leitura)
+**Decidido em 2026-08-13**: não vale o esforço de UI configurável agora — sem evidência de que os parâmetros (`ANOMALY_DROP_THRESHOLD = 0.3`, `ANOMALY_LOOKBACK_DAYS = 7` em `app/api/agent-worker/route.ts`) precisem mudar por cliente ou com frequência. Tela mostra os valores atuais em modo leitura, sem tabela nova. Se virar necessidade real, aí sim criar `agent_settings`.
 
 ---
 
