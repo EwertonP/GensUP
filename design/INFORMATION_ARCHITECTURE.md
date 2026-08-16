@@ -43,23 +43,25 @@ Feed cronológico cross-cliente, últimos N dias, mesclando várias fontes:
 ### 2.1 Pipeline — `/pipeline` **[EXISTE]**
 Já funcional: board por `stage` (novo/contatado/proposta/fechado/perdido), criação de prospect, conversão em cliente. Só precisa entrar na sidebar em vez do nav atual.
 
-### 2.2 Clientes — `/clients` **[PARCIAL: tabela `clients` existe, tela não]**
+### 2.2 Clientes — `/clients` **[EXISTE]** implementado em 2026-08-13
 
-**Lista** (`/clients`):
+**Lista** (`/clients`, `components/clients/ClientsBoard.tsx`):
 - Colunas: nome, status (`active`/`paused`/`archived`), quantidade de contas sociais conectadas, data de criação
-- Ação: criar cliente manualmente (hoje só existe via conversão de prospect — pode ser necessário criar direto, sem passar pelo pipeline, pra clientes legados)
-- Filtro por status
+- Ação "Novo cliente" (`ClientForm.tsx`) só aparece para `role=admin`, porque `POST /api/clients` é restrito a admin — decisão: não afrouxar a API pra manter a criação de cliente sob controle de admin.
+- Filtro por status (todos/ativos/pausados/arquivados)
 
 **Perfil individual** (`/clients/[id]`):
-- Dados do cliente (nome, status, slug do link na bio)
-- Contas sociais conectadas (`social_accounts` — hoje só Instagram, via OAuth do Fase 2)
-- Timeline de atividades (reaproveita `ActivityTimeline`, já genérico pra `client_id`)
-- Resumo de conteúdo: últimas peças, status atual do kanban filtrado por esse cliente
-- Resumo de insights: métricas recentes (se tiver conta conectada)
+- Dados do cliente (nome, status, slug do link na bio, com link pra `/b/[slug]`)
+- Contas sociais conectadas
+- Timeline de atividades (reaproveita `ActivityTimeline`, genérico pra `client_id`)
+- Resumo de conteúdo: últimas 5 peças com status
 - Links UTM ativos desse cliente
 - Usuários vinculados (quem tem login com esse `client_id`)
+- Resumo de insights (métricas recentes) ficou fora desta primeira versão — a tela já está grande; entra numa iteração futura se fizer falta.
 
-**Pergunta pra você**: quando um prospect é convertido (`POST /api/prospects/[id]/convert`), hoje ele só some do board — precisamos decidir se o redirect deveria ir direto pra `/clients/[id]` do cliente recém-criado.
+**Decidido em 2026-08-13**: conversão de prospect (`POST /api/prospects/[id]/convert`) agora redireciona direto pra `/clients/[id]` do cliente recém-criado (`ConvertToClientButton.tsx`).
+
+**Achado importante durante a implementação**: as políticas de RLS de `clients`, `content_items`, `social_accounts`, `insights_snapshots`, `video_feedback` e `carousel_feedback` só liberavam leitura cross-cliente para `is_admin()` — um usuário `role=agencia` (não-admin) via zero linhas nessas tabelas, porque staff de agência normalmente tem `client_id=null`. Corrigido na migration `016_agencia_cross_client_read.sql` (aplicada ao projeto), seguindo o mesmo padrão já usado em `prospects`/`activities` (`013_sales_crm.sql`). Isso também destrava os KPIs da seção 1 pra contas `agencia` não-admin.
 
 ### 2.3 Atividades — `/activities` **[NOVA]**
 Log cross-entidade: junta `activities` de todos os prospects e clientes numa lista só, com filtro por tipo (email/ligação/nota/reunião) e por cliente/prospect. Útil pra "o que a equipe fez essa semana" sem entrar em cada perfil.

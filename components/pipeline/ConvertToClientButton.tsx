@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 interface ConvertResponse {
@@ -21,14 +22,13 @@ async function convertProspect(prospectId: string): Promise<ConvertResponse> {
 export function ConvertToClientButton({ prospectId, prospectName }: { prospectId: string; prospectName: string }) {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
-  // Não há página /clients/[id] no portal ainda (ver design/sales-pipeline-spec.md,
-  // seção 7.1) — para o MVP o card simplesmente sai do board ao invalidar a query,
-  // sem redirect. Reavaliar quando essa rota existir.
   const convertMutation = useMutation({
     mutationFn: () => convertProspect(prospectId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["prospects"] });
+      router.push(`/clients/${data.client.id}`);
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Não foi possível converter este prospect. Tente novamente.");
