@@ -1,10 +1,17 @@
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/middleware";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
 
-export default function SettingsProfilePage() {
+export default async function SettingsProfilePage() {
+  const { role, clientId } = await requireAuth();
+  const supabase = await createClient();
+
+  const [{ data: authData }, clientResult] = await Promise.all([
+    supabase.auth.getUser(),
+    clientId ? supabase.from("clients").select("name").eq("id", clientId).single() : Promise.resolve({ data: null }),
+  ]);
+
   return (
-    <ComingSoon
-      title="Meu perfil"
-      description="Troca de senha e dados do próprio usuário. Ver design/INFORMATION_ARCHITECTURE.md seção 7.2."
-    />
+    <ProfileSettings email={authData.user?.email ?? "—"} role={role} clientName={clientResult.data?.name ?? null} />
   );
 }

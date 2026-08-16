@@ -1,6 +1,6 @@
 # Arquitetura de informação — Portal da Agência
 
-Status: **estrutura aprovada em 2026-08-12, detalhada em 2026-08-12**. Sidebar (`components/layout/Sidebar.tsx`) implementada em 2026-08-12 nos dois layouts, com todos os grupos/subitens abaixo — rotas **[NOVA]** apontam para páginas placeholder (`ComingSoon`) até serem construídas de fato. Este documento é a fonte da verdade de navegação — toda nova página entra numa dessas seções, não cria seção nova sem atualizar isto primeiro.
+Status: **estrutura aprovada em 2026-08-12, detalhada em 2026-08-12, todas as seções implementadas em 2026-08-13**. Sidebar (`components/layout/Sidebar.tsx`) implementada nos dois layouts. Este documento é a fonte da verdade de navegação — toda nova página entra numa dessas seções, não cria seção nova sem atualizar isto primeiro.
 
 Navegação: sidebar esquerda (troca o menu horizontal atual dos dois portais — agência e cliente, mesmo padrão visual). Cliente mantém as seções que já tem (Dashboard, Aprovações, Insights), só muda de horizontal pra sidebar.
 
@@ -127,11 +127,13 @@ Migra pra dentro da seção, sem mudança funcional.
 
 ## 7. Configurações
 
-### 7.1 Usuários da agência — `/settings/users` **[PARCIAL]**
-API já existe (`/api/users`), sem tela. Precisa: lista de usuários (nome, email, role, cliente vinculado se for `cliente`), criar/editar/desativar conta pela UI em vez de eu mexer direto no Supabase.
+### 7.1 Usuários da agência — `/settings/users` **[EXISTE]** implementado em 2026-08-13, admin-only
+`UsersManager.tsx`: lista usuários (email, role, status), convite por e-mail (`POST /api/users/invite`, cria via `auth.admin.inviteUserByEmail` — o trigger `handle_new_user` já popula `public.users` a partir de `raw_user_meta_data`), edição de role/cliente vinculado (`PATCH /api/users/[id]`, usa admin client quando é admin editando outro usuário), e ativar/desativar conta (`PATCH /api/users/[id]/ban`, usa `ban_duration` do Supabase Auth — sem coluna nova). Tela só é útil pra `role=admin` (as ações são admin-only na API), então staff `agencia` não-admin vê uma mensagem em vez do formulário.
 
-### 7.2 Meu perfil — `/settings/profile` **[NOVA]**
-Trocar senha, ver o próprio role/cliente vinculado. Hoje não existe absolutamente nada disso — nem trocar senha é possível pela UI.
+**Achado durante a implementação**: mesma lacuna de RLS das seções anteriores, agora em `users` (select) — também já afetava silenciosamente a seção "usuários vinculados" de `/clients/[id]` (seção 2.2). Corrigido na migration `022_agencia_users_read.sql` (aplicada ao projeto).
+
+### 7.2 Meu perfil — `/settings/profile` **[EXISTE]** implementado em 2026-08-13
+`ProfileSettings.tsx`: troca de senha via `supabase.auth.updateUser({ password })` (client SDK) e dados somente-leitura (email, role, nome do cliente vinculado).
 
 ---
 
