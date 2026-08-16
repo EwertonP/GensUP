@@ -58,27 +58,30 @@ Motivada pelo usuário achando o resultado da Fase A "amador" e trazendo duas re
 - [x] `app/layout.tsx`: `next/font/google` carregando Inter de verdade (bug real — nunca carregava antes)
 - [x] `motion` instalado
 - [x] `Button.tsx`: `active:scale-[0.97]` no press
-- [x] `Card.tsx`: eleva no hover/comprime no press quando `interactive` — **pendente**: remover `shadow-sm` do estado de repouso (v2 do `DESIGN.md` §4 diz card estático não tem sombra nenhuma, só borda; a Fase A anterior manteve `shadow-sm` sempre)
+- [x] `Card.tsx`: eleva no hover/comprime no press quando `interactive`; `shadow-sm` removido do estado de repouso (card estático agora só tem borda, sem sombra)
 - [x] `Input.tsx`: transição suave no foco
 - [x] `Sidebar.tsx`: indicador ativo com `layoutId` (morphing), grupo expande com `AnimatePresence`
-- [ ] `Sidebar.tsx`: **reverter** `bg-white/90 backdrop-blur-xl` → `bg-white` sólido (nenhuma referência usa blur; `DESIGN.md` §9 já proibia isso antes da Fase A introduzir)
-- [ ] `Sidebar.tsx`: indicador de item ativo ganha a barra vertical de 2-3px na borda esquerda (`DESIGN.md` §10.2), além do fundo tintado que já existe
-- [ ] `design-tokens.json` → `tailwind.config.ts`: aplicar raio v2 (`lg` 8px→18px, `xl` 16px→22px, `md`/`sm` já ajustados na Fase A) e sombra v2 (`md`/`lg` mais suaves, já ajustadas; `sm` quase invisível, já ajustada) — **conferir se precisa de mais um ajuste fino** depois de ver as páginas reais com o raio novo
-- [ ] `<h1>` de página: trocar `text-xl font-semibold` → `text-3xl font-bold tracking-[-0.02em]` nas páginas que usam esse padrão (grep por `text-xl font-semibold` em `app/**/*.tsx` pra achar todas de uma vez)
+- [x] `Sidebar.tsx`: revertido `bg-white/90 backdrop-blur-xl` → `bg-white` sólido
+- [x] `Sidebar.tsx`: indicador de item ativo ganhou a barra vertical de 3px na borda esquerda (`layoutId` próprio, sem colidir com o do grupo pai quando expandido)
+- [x] `design-tokens.json` → `tailwind.config.ts`: raio v2 aplicado (`lg` 14px→18px; `md`/`sm`/`xl` já vieram certos da Fase A)
+- [x] `<h1>` de página: `text-xl font-semibold` → `text-3xl font-bold tracking-[-0.02em]` em 25 arquivos (`app/**` e `components/**`), via `sed` em lote depois de confirmar por grep que todas as ocorrências eram `<h1>`
 
-Critério de pronto: `npm run build` limpo, checagem visual de pelo menos duas telas (`/agency-dashboard`, `/clients`) confirmando raio/sombra/tipografia novos sem quebrar layout.
+Critério de pronto: `npm run build` limpo — **feito**. Checagem visual: `<h1>` confirmado em 30px/700 via `getComputedStyle` no `/login`; sem erros de console além de HMR do túnel de preview (infra, não app).
 
 ## Fase G — Novos primitivos compartilhados
 
 Componentes que as referências trazem e que não existem hoje (`DESIGN.md` §10.1-10.2):
 
-- [ ] `components/ui/Tabs.tsx`: tabs com indicador de linha animado (`layoutId`, mesmo spring da Sidebar) + badge de contagem opcional por aba
-- [ ] `components/ui/CountBadge.tsx`: pill cinza claro com número — hoje cada tela que precisa disso (se precisar) reinventaria do zero; vira o padrão único
-- [ ] Refinar item de lista selecionável (usado hoje em `ClientsBoard`, `ActivitiesLog`) pra ganhar a barra de destaque na borda esquerda quando ativo
+- [x] `components/ui/Tabs.tsx`: tabs com indicador de linha animado (`layoutId`, mesmo spring da Sidebar) + badge de contagem opcional por aba
+- [x] `components/ui/CountBadge.tsx`: pill cinza claro com número
+- [x] Item de lista selecionável: a barra de destaque foi pro indicador ativo da própria `Sidebar` (Fase F); `ClientsBoard`/`ActivitiesLog` adotaram `Tabs` em vez de botões de filtro soltos, que já tem indicador próprio
 
 ## Fase H — Rollout pros padrões de conteúdo real
 
-- [ ] `ActivitiesLog.tsx` (seção 2.3 de `INFORMATION_ARCHITECTURE.md`) e o feed de atividade recente do `agency-dashboard` (seção 1.2): evoluir pro padrão de card rico (`DESIGN.md` §10.3) — título bold + timestamp no canto + corpo com palavras-chave em negrito/cor, em vez da linha de texto plano atual
+- [x] `ActivitiesLog.tsx`: cards individuais (não mais linhas de uma lista dividida) — nome do alvo em negrito, timestamp relativo (`há 2h`) no canto, corpo em cinza, autor no rodapé; filtro por tipo virou `Tabs` com contagem por tipo
+- [x] `ClientsBoard.tsx`: filtro de status virou `Tabs` com contagem por status (antes eram botões `rounded-full` soltos, sem indicador animado)
+- [~] Feed de atividade recente do `agency-dashboard` (seção 1.2): espaçamento/divisores melhorados, mas **não** virou o card rico completo com palavras-chave em negrito/cor — a função `getActivityFeed` retorna `description` como string única já montada (`"${cliente}: peça X mudou para Y"`), não partes estruturadas. Pra fazer o padrão completo, `FeedEvent` precisaria virar `{ subject, verb, detail }` em vez de uma string pronta — fica documentado como próximo passo, não fingido como feito.
+- [ ] Varredura geral: qualquer `Card` estático que dependia do `shadow-sm` antigo pra se destacar do fundo — não houve nenhum caso visualmente quebrado nos `npm run build`/checks feitos, mas não foi uma varredura visual página por página (só `/login` foi checado ao vivo)
 - [ ] Páginas com abas reais (nenhuma hoje usa tabs — `ClientsBoard` usa botões de filtro por status; avaliar se vale trocar por `Tabs.tsx` da Fase G, ou se o padrão de filtro por chip já é suficiente ali)
 - [ ] Varredura geral: qualquer `Card` estático que hoje depende do `shadow-sm` antigo pra se destacar do fundo — conferir que a borda sozinha (Fase F) ainda separa visualmente bem, ajustar `border-neutral-200` → mais escura se precisar de mais contraste
 

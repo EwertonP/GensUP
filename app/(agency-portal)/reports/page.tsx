@@ -11,7 +11,7 @@ export default async function ReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Relatórios mensais</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Relatórios mensais</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Gera um PDF sob demanda com as métricas agregadas do cliente e mês selecionados.
         </p>

@@ -49,7 +49,7 @@ export function MediaLibrary() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold">Biblioteca de mídia</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Biblioteca de mídia</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Arquivos já enviados pra cada cliente, pra reaproveitar entre peças sem re-upload.
         </p>

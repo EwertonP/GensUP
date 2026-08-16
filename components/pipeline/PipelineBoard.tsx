@@ -41,7 +41,7 @@ export function PipelineBoard({ users, ownerNameById, currentUserId }: PipelineB
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Pipeline de vendas</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">Pipeline de vendas</h1>
           <p className="text-sm text-neutral-500">Acompanhe prospects do primeiro contato até o fechamento.</p>
         </div>
         <Button variant="primary" onClick={() => setShowForm(true)}>

@@ -33,7 +33,7 @@ export default async function ActivitiesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Atividades</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Atividades</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Log unificado de interações com prospects e clientes — últimas {ACTIVITIES_LIMIT}.
         </p>

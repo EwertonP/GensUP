@@ -42,7 +42,7 @@ export default async function ApprovalDetailPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">{item.title ?? `Aprovação — ${item.id.slice(0, 8)}`}</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">{item.title ?? `Aprovação — ${item.id.slice(0, 8)}`}</h1>
           <div className="mt-1">
             <StatusBadge status={item.status} />
           </div>

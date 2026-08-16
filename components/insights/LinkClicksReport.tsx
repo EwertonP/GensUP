@@ -14,7 +14,7 @@ export function LinkClicksReport() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold">Relatório de cliques</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Relatório de cliques</h1>
         <p className="mt-1 text-sm text-neutral-500">Cliques nos links UTM dos últimos 30 dias.</p>
       </div>
 

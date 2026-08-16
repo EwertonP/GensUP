@@ -50,7 +50,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold">{typedClient.name}</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.02em]">{typedClient.name}</h1>
             <ClientStatusBadge status={typedClient.status} />
           </div>
           <p className="mt-1 text-sm text-neutral-500">

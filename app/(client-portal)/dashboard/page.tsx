@@ -1,3 +1,3 @@
 export default function ClientDashboardPage() {
-  return <h1 className="text-xl font-semibold">Dashboard do cliente</h1>;
+  return <h1 className="text-3xl font-bold tracking-[-0.02em]">Dashboard do cliente</h1>;
 }

@@ -66,7 +66,7 @@ export async function EditorialCalendar({ year, month }: { year: number; month: 
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Calendário editorial</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">Calendário editorial</h1>
           <p className="mt-1 text-sm text-neutral-500 capitalize">{monthLabel(year, month)}</p>
         </div>
         <div className="flex gap-2">

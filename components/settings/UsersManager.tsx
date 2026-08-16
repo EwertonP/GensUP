@@ -123,7 +123,7 @@ export function UsersManager() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Usuários da agência</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">Usuários da agência</h1>
           <p className="mt-1 text-sm text-neutral-500">Crie, edite e desative contas de acesso à plataforma.</p>
         </div>
         <Button variant="primary" onClick={() => setInviteOpen(true)}>

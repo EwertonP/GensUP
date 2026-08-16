@@ -24,7 +24,7 @@ export default async function ApprovalsListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Peças para aprovação</h1>
+      <h1 className="text-3xl font-bold tracking-[-0.02em]">Peças para aprovação</h1>
 
       {error && (
         <p className="text-sm text-status-error">Erro ao carregar peças: {error.message}</p>

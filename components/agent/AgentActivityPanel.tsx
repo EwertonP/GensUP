@@ -77,7 +77,7 @@ export function AgentActivityPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold">Atividade dos agentes</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Atividade dos agentes</h1>
         <p className="mt-1 text-sm text-neutral-500">Todas as tasks de IA, de todos os clientes.</p>
       </div>
 

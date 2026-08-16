@@ -15,7 +15,7 @@ export default function AgentsSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Configurações do agente</h1>
+        <h1 className="text-3xl font-bold tracking-[-0.02em]">Configurações do agente</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Parâmetros fixos no código hoje (sem UI de edição) — sem evidência ainda de que precisem virar
           configuráveis por cliente.

@@ -26,7 +26,7 @@ export default async function KanbanPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Kanban de produção</h1>
+      <h1 className="text-3xl font-bold tracking-[-0.02em]">Kanban de produção</h1>
       {error && <p className="text-sm text-status-error">Erro ao carregar itens: {error.message}</p>}
       <KanbanBoard items={items} />
     </div>
