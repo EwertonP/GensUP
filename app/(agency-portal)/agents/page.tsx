@@ -1,10 +1,5 @@
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { AgentActivityPanel } from "@/components/agent/AgentActivityPanel";
 
 export default function AgentsActivityPage() {
-  return (
-    <ComingSoon
-      title="Atividade dos agentes"
-      description="Todas as tasks de agentes de IA, cross-cliente. Ver design/INFORMATION_ARCHITECTURE.md seção 5.1."
-    />
-  );
+  return <AgentActivityPanel />;
 }
